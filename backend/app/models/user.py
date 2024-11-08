@@ -8,7 +8,7 @@ class User:
         user = {
             "username": username,
             "email": email,
-            "password": generate_password_hash(password),
+            "password": generate_password_hash(password, method='pbkdf2:sha256'),  # Specify the hash method
             "created_at": datetime.utcnow()
         }
         return mongo.db.users.insert_one(user)

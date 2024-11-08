@@ -23,14 +23,20 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    user = User.find_by_username(data['username'])
-    
-    if user and check_password_hash(user['password'], data['password']):
-        access_token = create_access_token(identity=str(user['_id']))
-        return jsonify({
-            "access_token": access_token,
-            "username": user['username']
-        }), 200
-    
-    return jsonify({"message": "Invalid credentials"}), 401
+    try:
+        data = request.get_json()
+        user = User.find_by_username(data['username'])
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 401
+            
+        if check_password_hash(user['password'], data['password']):
+            access_token = create_access_token(identity=str(user['_id']))
+            return jsonify({
+                "access_token": access_token,
+                "username": user['username']
+            }), 200
+        
+        return jsonify({"message": "Invalid credentials"}), 401
+    except Exception as e:
+        return jsonify({"message": f"Error during login: {str(e)}"}), 500
