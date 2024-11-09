@@ -12,19 +12,23 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold">DaBooks</h1>
+            <span className="text-2xl font-light tracking-tight text-gray-900">
+              da<span className="font-medium">books</span>
+            </span>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">Welcome, {username}!</span>
+          <div className="flex items-center space-x-6">
+            <span className="text-sm text-gray-500">
+              {username}
+            </span>
             <button
               onClick={handleLogout}
-              className="text-sm text-red-600 hover:text-red-700"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
-              Logout
+              Sign out
             </button>
           </div>
         </div>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import BookCard from '../components/BookCard';
+import Navbar from '../components/Navbar';
 
 const Dashboard = () => {
   const [books, setBooks] = useState([]);
-  const { username, token, logout } = useAuth();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     fetchBooks();
@@ -18,62 +20,51 @@ const Dashboard = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setBooks(data);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch books');
       }
-    } catch (error) {
-      console.error('Error fetching books:', error);
+      
+      const data = await response.json();
+      setBooks(data);
+      setError(null);
+    } catch (err) {
+      setError('Error loading books');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">DaBooks</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {username}!</span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-700"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-light text-gray-900">
+            Your reading <span className="font-medium">collection</span>
+          </h1>
         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse text-gray-400">Loading books...</div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-red-500">{error}</div>
+          </div>
+        ) : books.length === 0 ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-gray-400">No books available</div>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {books.map((book) => (
-              <div
-                key={book.id}
-                className="bg-white overflow-hidden shadow rounded-lg"
-              >
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {book.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600">{book.author}</p>
-                  <p className="mt-2 text-sm text-gray-500">
-                    {book.description}
-                  </p>
-                </div>
-              </div>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

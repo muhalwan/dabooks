@@ -1,18 +1,16 @@
 import React from 'react';
 
-const BookCard = ({ book, onReviewClick }) => {
+const BookCard = ({ book }) => {
   return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium text-gray-900">{book.title}</h3>
-        <p className="mt-1 text-sm text-gray-600">{book.author}</p>
-        <p className="mt-2 text-sm text-gray-500">{book.description}</p>
-        <button
-          onClick={() => onReviewClick(book.id)}
-          className="mt-4 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
-        >
-          Add Review
-        </button>
+    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="p-6">
+        <div className="h-40 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{book.title}</h3>
+            <p className="text-sm text-gray-500 italic">{book.author}</p>
+          </div>
+          <p className="text-sm text-gray-600 line-clamp-3 mt-4">{book.description}</p>
+        </div>
       </div>
     </div>
   );

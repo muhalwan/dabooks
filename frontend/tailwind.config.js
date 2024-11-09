@@ -7,5 +7,5 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],  // Remove the require() call
+  plugins: [],
 }

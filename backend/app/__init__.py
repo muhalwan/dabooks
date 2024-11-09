@@ -1,8 +1,7 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from app.config import Config
 from app.extensions import mongo, jwt
-from app.routes import auth_bp, books_bp, users_bp
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -10,21 +9,37 @@ def create_app(config_class=Config):
 
     # Initialize extensions
     CORS(app)
-    mongo.init_app(app)
     jwt.init_app(app)
 
-    # Register blueprints
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(books_bp, url_prefix='/books')
-    app.register_blueprint(users_bp, url_prefix='/users')
+    # Initialize MongoDB
+    try:
+        mongo.init_app(app)
+    except Exception as e:
+        app.logger.error(f"Failed to initialize MongoDB: {str(e)}")
+        # Continue app initialization even if MongoDB fails
 
-    # Test route
+    # Register blueprints
+    from app.routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
     @app.route('/test')
     def test():
+        return jsonify({"message": "Backend is working!"}), 200
+
+    @app.route('/db-test')
+    def db_test():
         try:
-            user_count = mongo.db.users.count_documents({})
-            return {"message": "Connected to MongoDB", "user_count": user_count}, 200
+            if mongo.db:
+                # Test the connection
+                mongo.client.admin.command('ping')
+                return jsonify({
+                    "message": "Database connection successful",
+                    "database": mongo.db.name
+                }), 200
         except Exception as e:
-            return {"message": f"Error: {str(e)}"}, 500
+            return jsonify({
+                "message": "Database connection failed",
+                "error": str(e)
+            }), 500
 
     return app

@@ -1,6 +1,5 @@
-from datetime import datetime
 from app.extensions import mongo
-from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class User:
     @staticmethod
@@ -8,7 +7,7 @@ class User:
         user = {
             "username": username,
             "email": email,
-            "password": generate_password_hash(password, method='pbkdf2:sha256'),  # Specify the hash method
+            "password": password,
             "created_at": datetime.utcnow()
         }
         return mongo.db.users.insert_one(user)
