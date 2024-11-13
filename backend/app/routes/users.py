@@ -6,11 +6,12 @@ from bson import ObjectId
 
 users_bp = Blueprint('users', __name__)
 
+
 @users_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
     current_user_id = get_jwt_identity()
-    
+
     try:
         pipeline = [
             {"$match": {"user_id": ObjectId(current_user_id)}},
@@ -22,13 +23,13 @@ def get_profile():
             }},
             {"$unwind": "$book"}
         ]
-        
+
         user = mongo.db.users.find_one({"_id": ObjectId(current_user_id)})
         reviews = list(mongo.db.reviews.aggregate(pipeline))
-        
+
         if not user:
             return jsonify({"message": "User not found"}), 404
-            
+
         return jsonify({
             "username": user['username'],
             "email": user['email'],

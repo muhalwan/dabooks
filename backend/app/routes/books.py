@@ -5,6 +5,7 @@ from app.models.review import Review
 
 books_bp = Blueprint('books', __name__)
 
+
 @books_bp.route('', methods=['GET'])
 def get_books():
     try:
@@ -17,6 +18,7 @@ def get_books():
         } for book in books]), 200
     except Exception as e:
         return jsonify({"message": f"Error fetching books: {str(e)}"}), 500
+
 
 @books_bp.route('', methods=['POST'])
 @jwt_required()
@@ -32,6 +34,7 @@ def add_book():
     except Exception as e:
         return jsonify({"message": f"Error adding book: {str(e)}"}), 500
 
+
 @books_bp.route('/<book_id>/reviews', methods=['POST', 'GET'])
 @jwt_required(optional=True)
 def book_reviews(book_id):
@@ -39,7 +42,7 @@ def book_reviews(book_id):
         current_user_id = get_jwt_identity()
         if not current_user_id:
             return jsonify({"message": "Authentication required"}), 401
-            
+
         data = request.get_json()
         try:
             Review.create(
@@ -51,7 +54,7 @@ def book_reviews(book_id):
             return jsonify({"message": "Review added successfully"}), 201
         except Exception as e:
             return jsonify({"message": f"Error adding review: {str(e)}"}), 500
-    
+
     else:  # GET
         try:
             reviews = Review.get_book_reviews(book_id)
