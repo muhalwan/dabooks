@@ -14,6 +14,20 @@ export const getBooks = async (token) => {
   return response.json();
 };
 
+export const getBookById = async (id, token) => {
+  const response = await fetch(`${API_URL}/books/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch book');
+  }
+
+  return response.json();
+};
+
 export const addReview = async (bookId, reviewData, token) => {
   const response = await fetch(`${API_URL}/books/${bookId}/reviews`, {
     method: 'POST',
@@ -36,20 +50,6 @@ export const getBookReviews = async (bookId) => {
 
   if (!response.ok) {
     throw new Error('Failed to fetch reviews');
-  }
-
-  return response.json();
-};
-
-export const getBookById = async (id, token) => {
-  const response = await fetch(`${API_URL}/books/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch book');
   }
 
   return response.json();

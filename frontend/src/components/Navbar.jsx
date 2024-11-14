@@ -16,7 +16,10 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <span className="text-2xl font-light tracking-tight text-gray-900">
+            <span
+              onClick={() => navigate('/')}
+              className="text-2xl font-light tracking-tight text-gray-900 cursor-pointer hover:text-gray-700"
+            >
               da<span className="font-medium">books</span>
             </span>
           </div>
