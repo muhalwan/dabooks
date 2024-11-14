@@ -1,8 +1,15 @@
+// BookCard.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const BookCard = ({ book }) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div 
+      onClick={() => navigate(`/book/${book.id}`)}
+      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+    >
       <div className="p-6">
         <div className="h-40 flex flex-col justify-between">
           <div>

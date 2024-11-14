@@ -40,3 +40,17 @@ export const getBookReviews = async (bookId) => {
 
   return response.json();
 };
+
+export const getBookById = async (id, token) => {
+  const response = await fetch(`${API_URL}/books/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch book');
+  }
+
+  return response.json();
+};
