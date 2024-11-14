@@ -20,3 +20,11 @@ class Book:
     @staticmethod
     def find_by_id(book_id):
         return mongo.db.books.find_one({"_id": ObjectId(book_id)})
+
+    @staticmethod
+    def get_by_id(book_id):
+        from bson import ObjectId
+        try:
+            return mongo.db.books.find_one({"_id": ObjectId(book_id)})
+        except Exception:
+            return None

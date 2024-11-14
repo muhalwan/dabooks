@@ -67,3 +67,21 @@ def book_reviews(book_id):
             } for review in reviews]), 200
         except Exception as e:
             return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
+
+
+@books_bp.route('/<book_id>', methods=['GET'])
+@jwt_required()
+def get_book(book_id):
+    try:
+        book = Book.get_by_id(book_id)  # You'll need to add this method to your Book model
+        if not book:
+            return jsonify({"message": "Book not found"}), 404
+
+        return jsonify({
+            'id': str(book['_id']),
+            'title': book['title'],
+            'author': book['author'],
+            'description': book.get('description', '')
+        }), 200
+    except Exception as e:
+        return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
