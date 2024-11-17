@@ -130,37 +130,39 @@ def get_book(book_id):
         return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
 
 
-@books_bp.route('/<book_id>/reviews', methods=['POST', 'GET'])
-@jwt_required(optional=True)
-def book_reviews(book_id):
-    if request.method == 'POST':
-        current_user_id = get_jwt_identity()
-        if not current_user_id:
-            return jsonify({"message": "Authentication required"}), 401
+@books_bp.route('/<book_id>', methods=['GET'])
+@jwt_required()
+def get_book(book_id):
+    try:
+        if not ObjectId.is_valid(book_id):
+            return jsonify({"message": "Invalid book ID format"}), 400
 
-        data = request.get_json()
-        try:
-            Review.create(
-                data['text'],
-                data['rating'],
-                current_user_id,
-                book_id
-            )
-            # Invalidate cache after new review
-            mongo.db.cache.delete_many({'key': 'all_books'})
-            return jsonify({"message": "Review added successfully"}), 201
-        except Exception as e:
-            return jsonify({"message": f"Error adding review: {str(e)}"}), 500
+        # First, get the book
+        book = mongo.db.books.find_one({'_id': ObjectId(book_id)})
 
-    else:  # GET
-        try:
-            reviews = Review.get_book_reviews(book_id)
-            return jsonify([{
-                'id': str(review['_id']),
-                'text': review['text'],
-                'rating': review['rating'],
-                'date_posted': review['created_at'].isoformat(),
-                'user': review['user']['username']
-            } for review in reviews]), 200
-        except Exception as e:
-            return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
+        if not book:
+            return jsonify({"message": "Book not found"}), 404
+
+        # Then get reviews stats if they exist
+        reviews_stats = mongo.db.reviews.aggregate([
+            {'$match': {'book_id': ObjectId(book_id)}},
+            {'$group': {
+                '_id': None,
+                'avg_rating': {'$avg': '$rating'},
+                'count': {'$sum': 1}
+            }}
+        ]).next() if mongo.db.reviews.count_documents({'book_id': ObjectId(book_id)}) > 0 else None
+
+        return jsonify({
+            'id': str(book['_id']),
+            'title': book['title'],
+            'author': book['author'],
+            'description': book.get('description', ''),
+            'average_rating': round(reviews_stats['avg_rating'],
+                                    1) if reviews_stats and 'avg_rating' in reviews_stats else 0,
+            'total_ratings': reviews_stats['count'] if reviews_stats and 'count' in reviews_stats else 0
+        }), 200
+
+    except Exception as e:
+        print(f"Error fetching book: {str(e)}")  # Debug log
+        return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
