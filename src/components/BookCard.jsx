@@ -1,13 +1,16 @@
-// components/BookCard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const BookCard = ({ book }) => {
   const navigate = useNavigate();
 
+  const handleClick = () => {
+    navigate(`/book/${book.id}`);
+  };
+
   return (
     <div
-      onClick={() => navigate(`/book/${book.id}`)}
+      onClick={handleClick}
       className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
     >
       <div className="p-6">
@@ -21,10 +24,10 @@ const BookCard = ({ book }) => {
                 <span className="text-gray-300">{'★'.repeat(5 - Math.round(book.average_rating))}</span>
               </div>
               <span className="ml-2 text-sm text-gray-500">
-                ({book.average_rating})
+                ({book.average_rating.toFixed(1)})
               </span>
               <span className="ml-2 text-sm text-gray-400">
-                {book.review_count} {book.review_count === 1 ? 'review' : 'reviews'}
+                {book.total_ratings} {book.total_ratings === 1 ? 'review' : 'reviews'}
               </span>
             </div>
           </div>
