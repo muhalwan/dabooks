@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import BookCard from '../components/BookCard';
 import Navbar from '../components/Navbar';
+import BookCard from '../components/BookCard';
 import config from '../config';
 
 const Dashboard = () => {
@@ -11,33 +11,47 @@ const Dashboard = () => {
   const { token } = useAuth();
 
   useEffect(() => {
-    fetchBooks();
-  }, []);
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/books`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-  const fetchBooks = async () => {
-    try {
-      const response = await fetch(`${config.API_URL}/books`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch books');
-      
-      const data = await response.json();
-      setBooks(data);
-      setError(null);
-    } catch (err) {
-      console.error('Error:', err);
-      setError('Error loading books');
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!response.ok) {
+          throw new Error('Failed to fetch books');
+        }
+
+        const data = await response.json();
+        setBooks(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error:', err);
+        setError('Error loading books');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, [token]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-red-600 text-center bg-white rounded-lg shadow p-4">
+            {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -45,12 +59,8 @@ const Dashboard = () => {
             Your reading <span className="font-medium">collection</span>
           </h1>
         </div>
-        
-        {error ? (
-          <div className="text-red-500 text-center p-4 bg-white rounded-lg shadow">
-            {error}
-          </div>
-        ) : loading ? (
+
+        {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
@@ -61,7 +71,7 @@ const Dashboard = () => {
             ))}
           </div>
         ) : books.length === 0 ? (
-          <div className="text-gray-500 text-center p-8 bg-white rounded-lg shadow">
+          <div className="text-gray-500 text-center bg-white rounded-lg shadow p-8">
             No books available
           </div>
         ) : (
@@ -76,4 +86,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;  // Add this line
+export default Dashboard;
