@@ -5,36 +5,36 @@ import Navbar from '../components/Navbar';
 import config from '../config';
 
 const Dashboard = () => {
- const [books, setBooks] = useState([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState(null);
- const { token } = useAuth();
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { token } = useAuth();
 
- useEffect(() => {
-   fetchBooks();
- }, []);
+  useEffect(() => {
+    fetchBooks();
+  }, []);
 
- const fetchBooks = async () => {
-   try {
-     const response = await fetch(`${config.API_URL}/books`, {
-       headers: {
-         'Authorization': `Bearer ${token}`,
-         'Accept': 'application/json'
-       },
-     });
-
-     if (!response.ok) throw new Error('Failed to fetch books');
-
-     const data = await response.json();
-     setBooks(data);
-     setError(null);
-   } catch (err) {
-     console.error('Error:', err);
-     setError('Error loading books');
-   } finally {
-     setLoading(false);
-   }
- };
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch(`${config.API_URL}/books`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch books');
+      
+      const data = await response.json();
+      setBooks(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Error loading books');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -45,7 +45,7 @@ const Dashboard = () => {
             Your reading <span className="font-medium">collection</span>
           </h1>
         </div>
-
+        
         {error ? (
           <div className="text-red-500 text-center p-4 bg-white rounded-lg shadow">
             {error}
@@ -75,3 +75,5 @@ const Dashboard = () => {
     </div>
   );
 };
+
+export default Dashboard;  // Add this line
