@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import MainLayout from '../layouts/MainLayout';
+import Navbar from '../components/Navbar';
 import ReviewForm from '../components/ReviewForm';
 import config from '../config';
 
@@ -26,9 +26,7 @@ const BookDetail = () => {
           },
         });
 
-        if (!bookResponse.ok) {
-          throw new Error('Failed to fetch book details');
-        }
+        if (!bookResponse.ok) throw new Error('Failed to fetch book details');
 
         const bookData = await bookResponse.json();
         setBook(bookData);
@@ -41,12 +39,11 @@ const BookDetail = () => {
           },
         });
 
-        if (!reviewsResponse.ok) {
-          throw new Error('Failed to fetch reviews');
-        }
+        if (!reviewsResponse.ok) throw new Error('Failed to fetch reviews');
 
         const reviewsData = await reviewsResponse.json();
         setReviews(reviewsData);
+        setError(null);
       } catch (err) {
         console.error('Error:', err);
         setError(err.message);
@@ -70,9 +67,7 @@ const BookDetail = () => {
         body: JSON.stringify(reviewData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit review');
-      }
+      if (!response.ok) throw new Error('Failed to submit review');
 
       setIsReviewFormOpen(false);
 
@@ -86,45 +81,71 @@ const BookDetail = () => {
       const updatedReviews = await updatedReviewsResponse.json();
       setReviews(updatedReviews);
     } catch (err) {
-      console.error('Error submitting review:', err);
       setError('Error submitting review');
     }
   };
 
   if (loading) {
     return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-pulse text-gray-400">Loading...</div>
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/3 mb-8"></div>
+            <div className="h-32 bg-gray-200 rounded mb-8"></div>
+            <div className="space-y-4">
+              <div className="h-24 bg-gray-200 rounded"></div>
+              <div className="h-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <MainLayout>
-        <div className="text-red-500 text-center">{error}</div>
-      </MainLayout>
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-red-500 text-center p-4 bg-white rounded-lg shadow">
+            {error}
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (!book) {
     return (
-      <MainLayout>
-        <div className="text-gray-500 text-center">Book not found</div>
-      </MainLayout>
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-gray-500 text-center">Book not found</div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{book.title}</h1>
           <p className="text-xl text-gray-600 italic mb-4">{book.author}</p>
+          <div className="flex items-center mb-6">
+            <div className="flex text-yellow-400">
+              {'★'.repeat(Math.round(book.average_rating || 0))}
+              <span className="text-gray-300">{'★'.repeat(5 - Math.round(book.average_rating || 0))}</span>
+            </div>
+            <span className="ml-2 text-gray-600">
+              ({book.total_ratings || 0} {book.total_ratings === 1 ? 'review' : 'reviews'})
+            </span>
+          </div>
           <p className="text-gray-600 mb-6">{book.description}</p>
-          
+
           <button
             onClick={() => setIsReviewFormOpen(true)}
             className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -135,8 +156,16 @@ const BookDetail = () => {
 
         {isReviewFormOpen && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Write a Review</h2>
+            <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Write a Review</h2>
+                <button
+                  onClick={() => setIsReviewFormOpen(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  ✕
+                </button>
+              </div>
               <ReviewForm
                 bookId={id}
                 onSubmit={handleReviewSubmit}
@@ -168,7 +197,7 @@ const BookDetail = () => {
           )}
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
