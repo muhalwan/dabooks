@@ -1,3 +1,6 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 const BookCard = ({ book }) => {
   const navigate = useNavigate();
 
@@ -25,3 +28,5 @@ const BookCard = ({ book }) => {
     </div>
   );
 };
+
+export default BookCard;
