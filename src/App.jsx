@@ -7,40 +7,40 @@ import BookDetail from './pages/BookDetail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-  const { token } = useAuth();
-  return token ? children : <Navigate to="/login" />;
+ const { token } = useAuth();
+ return token ? children : <Navigate to="/login" />;
 };
 
 function App() {
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        } />
-        <Route path="/book/:id" element={
-          <PrivateRoute>
-            <BookDetail />
-          </PrivateRoute>
-        } />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </div>
-  );
+ return (
+   <Routes>
+     <Route path="/login" element={<Login />} />
+     <Route path="/register" element={<Register />} />
+     <Route path="/" element={
+       <PrivateRoute>
+         <Dashboard />
+       </PrivateRoute>
+     } />
+     <Route path="/book/:id" element={
+       <PrivateRoute>
+         <BookDetail />
+       </PrivateRoute>
+     } />
+     <Route path="*" element={<Navigate to="/" />} />
+   </Routes>
+ );
 }
 
 const AppWrapper = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </Router>
-  );
+ return (
+   <Router>
+     <AuthProvider>
+       <div className="min-h-screen bg-gray-50">
+         <App />
+       </div>
+     </AuthProvider>
+   </Router>
+ );
 };
 
 export default AppWrapper;
