@@ -12,6 +12,8 @@ books_bp = Blueprint('books', __name__)
 def get_books():
     try:
         search_query = request.args.get('search', '').strip()
+        sort_by = request.args.get('sort', 'title')  # default sort by title
+        sort_order = request.args.get('order', 'asc')  # default ascending
 
         pipeline = []
 
@@ -50,6 +52,15 @@ def get_books():
                 }
             }
         ])
+
+        # Add sorting
+        sort_direction = 1 if sort_order == 'asc' else -1
+        if sort_by == 'rating':
+            pipeline.append({'$sort': {'average_rating': sort_direction}})
+        elif sort_by == 'popularity':
+            pipeline.append({'$sort': {'total_ratings': sort_direction}})
+        else:  # default sort by title
+            pipeline.append({'$sort': {'title': sort_direction}})
 
         books = list(mongo.db.books.aggregate(pipeline))
 
