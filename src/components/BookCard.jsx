@@ -7,15 +7,18 @@ const BookCard = ({ book, index }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      initial={false}
+      whileHover={{
+        scale: 1.02,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => navigate(`/book/${book.id}`)}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md dark:shadow-gray-700 transition-all duration-300 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md dark:shadow-gray-700/50
+                 transition-all duration-300 cursor-pointer overflow-hidden"
     >
       <div className="p-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
           {book.title}
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 italic mb-3">
@@ -29,13 +32,13 @@ const BookCard = ({ book, index }) => {
             </span>
           </div>
           <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            ({book.average_rating || 0})
+            ({(book.average_rating || 0).toFixed(1)})
           </span>
           <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            {book.total_ratings || 0} reviews
+            {book.total_ratings || 0} {book.total_ratings === 1 ? 'review' : 'reviews'}
           </span>
         </div>
-        <p className="text-gray-700 dark:text-gray-300 line-clamp-3">
+        <p className="text-gray-700 dark:text-gray-300 line-clamp-3 text-sm">
           {book.description}
         </p>
       </div>
