@@ -1,11 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, index }) => {
   const navigate = useNavigate();
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       onClick={() => navigate(`/book/${book.id}`)}
       className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300 cursor-pointer"
     >
@@ -32,7 +37,7 @@ const BookCard = ({ book }) => {
         </div>
         <p className="text-gray-700 line-clamp-3">{book.description}</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

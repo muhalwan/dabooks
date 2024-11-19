@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ReviewForm = ({ bookId, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -15,16 +16,24 @@ const ReviewForm = ({ bookId, onSubmit, onCancel }) => {
     return (
       <div className="flex items-center space-x-1">
         {[5, 4, 3, 2, 1].map((star) => (
-          <button
+          <motion.button
             key={star}
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
             type="button"
             onClick={() => setFormData({ ...formData, rating: star })}
             className="focus:outline-none"
           >
-            <span className={`text-2xl ${formData.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>
+            <motion.span
+              animate={{
+                scale: formData.rating >= star ? 1.2 : 1,
+                color: formData.rating >= star ? '#FBBF24' : '#D1D5DB'
+              }}
+              className="text-2xl"
+            >
               ★
-            </span>
-          </button>
+            </motion.span>
+          </motion.button>
         ))}
       </div>
     );
