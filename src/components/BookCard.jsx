@@ -30,9 +30,7 @@ const BookCard = ({ book }) => {
             {book.total_ratings || 0} reviews
           </span>
         </div>
-        <p className="text-gray-700 line-clamp-3">
-          {book.description}
-        </p>
+        <p className="text-gray-700 line-clamp-3">{book.description}</p>
       </div>
     </div>
   );

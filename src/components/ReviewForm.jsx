@@ -38,17 +38,16 @@ const ReviewForm = ({ bookId, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="review" className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Review
         </label>
         <textarea
-          id="review"
           required
+          value={formData.text}
+          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           rows="4"
           placeholder="Write your review here..."
-          value={formData.text}
-          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
         />
       </div>
 

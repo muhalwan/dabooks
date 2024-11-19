@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkToken();
-    const interval = setInterval(checkToken, 60000); // Check every minute
+    const interval = setInterval(checkToken, 60000);
     return () => clearInterval(interval);
   }, [navigate]);
 

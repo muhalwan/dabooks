@@ -37,19 +37,6 @@ const Dashboard = () => {
     fetchBooks();
   }, [token]);
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-red-600 text-center bg-white rounded-lg shadow p-4">
-            {error}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -60,7 +47,11 @@ const Dashboard = () => {
           </h1>
         </div>
 
-        {loading ? (
+        {error ? (
+          <div className="bg-white rounded-lg shadow p-4">
+            <p className="text-red-600 text-center">{error}</p>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
@@ -71,8 +62,8 @@ const Dashboard = () => {
             ))}
           </div>
         ) : books.length === 0 ? (
-          <div className="text-gray-500 text-center bg-white rounded-lg shadow p-8">
-            No books available
+          <div className="bg-white rounded-lg shadow p-8">
+            <p className="text-gray-500 text-center">No books available</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
