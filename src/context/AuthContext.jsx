@@ -16,14 +16,11 @@ export const AuthProvider = ({ children }) => {
         try {
           const decodedToken = jwtDecode(token);
           const currentTime = Date.now() / 1000;
-
           if (decodedToken.exp < currentTime) {
             logout();
-            navigate('/login');
           }
-        } catch (error) {
+        } catch {
           logout();
-          navigate('/login');
         }
       }
     };
@@ -31,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     checkToken();
     const interval = setInterval(checkToken, 60000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   const login = (newToken, newUsername) => {
     setToken(newToken);
@@ -45,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     setUsername(null);
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    navigate('/login');
   };
 
   return (

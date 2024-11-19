@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
-import ReviewForm from '../components/ReviewForm';
-import PageTransition from '../components/PageTransition';
-import config from '../config';
+import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from '../components/shared/Navbar';
+import BookInfo from '../components/book/BookInfo';
+import ReviewForm from '../components/book/ReviewForm';
+import ReviewList from '../components/book/ReviewList';
+import PageTransition from '../components/shared/PageTransition';
+import { api } from '../utils/api';
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -15,95 +18,46 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch book details
-        const bookResponse = await fetch(`${config.API_URL}/books/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!bookResponse.ok) {
-          throw new Error('Failed to fetch book details');
-        }
-
-        const bookData = await bookResponse.json();
-        setBook(bookData);
-
-        // Fetch reviews
-        const reviewsResponse = await fetch(`${config.API_URL}/books/${id}/reviews`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!reviewsResponse.ok) {
-          throw new Error('Failed to fetch reviews');
-        }
-
-        const reviewsData = await reviewsResponse.json();
-        setReviews(reviewsData);
-        setError(null);
-      } catch (err) {
-        console.error('Error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [bookData, reviewsData] = await Promise.all([
+        api.books.getById(id, token),
+        api.books.getReviews(id, token)
+      ]);
+      setBook(bookData);
+      setReviews(reviewsData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [id, token]);
 
-  const handleReviewSubmit = async (bookId, reviewData) => {
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleReviewSubmit = async (reviewData) => {
     try {
-      const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(reviewData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit review');
-      }
-
+      await api.books.addReview(id, reviewData, token);
       setIsReviewFormOpen(false);
-
-      // Fetch updated reviews
-      const updatedReviewsResponse = await fetch(`${config.API_URL}/books/${id}/reviews`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const updatedReviews = await updatedReviewsResponse.json();
-      setReviews(updatedReviews);
+      await fetchData();
     } catch (err) {
-      setError('Error submitting review');
+      setError('Failed to submit review');
     }
   };
-
-  const darkClass = "bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white";
 
   if (loading) {
     return (
       <PageTransition>
-        <div className={`min-h-screen ${darkClass}`}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="animate-pulse space-y-8">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="space-y-4">
-                <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </div>
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
             </div>
           </div>
         </div>
@@ -114,7 +68,7 @@ const BookDetail = () => {
   if (error) {
     return (
       <PageTransition>
-        <div className={`min-h-screen ${darkClass}`}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
@@ -129,7 +83,7 @@ const BookDetail = () => {
   if (!book) {
     return (
       <PageTransition>
-        <div className={`min-h-screen ${darkClass}`}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
@@ -143,78 +97,45 @@ const BookDetail = () => {
 
   return (
     <PageTransition>
-      <div className={`min-h-screen ${darkClass}`}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
         <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-            <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-            <p className="text-xl italic mb-4">{book.author}</p>
-            <div className="flex items-center mb-6">
-              <div className="flex text-yellow-400">
-                {'★'.repeat(Math.round(book.average_rating || 0))}
-                <span className="text-gray-300 dark:text-gray-600">
-                  {'★'.repeat(5 - Math.round(book.average_rating || 0))}
-                </span>
-              </div>
-              <span className="ml-2 text-gray-600 dark:text-gray-400">
-                ({book.total_ratings || 0} {book.total_ratings === 1 ? 'review' : 'reviews'})
-              </span>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{book.description}</p>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <BookInfo book={book} onReviewClick={() => setIsReviewFormOpen(true)} />
+          <ReviewList reviews={reviews} />
 
-            <button
-              onClick={() => setIsReviewFormOpen(true)}
-              className="py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Write a Review
-            </button>
-          </div>
-
-          {isReviewFormOpen && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full m-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">Write a Review</h2>
-                  <button
-                    onClick={() => setIsReviewFormOpen(false)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <ReviewForm
-                  bookId={id}
-                  onSubmit={handleReviewSubmit}
-                  onCancel={() => setIsReviewFormOpen(false)}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-bold mb-4">Reviews</h2>
-            {reviews.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400">No reviews yet</p>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <div key={review.id} className="border-b pb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">{review.user}</span>
-                      <div className="flex items-center">
-                        <span className="text-yellow-400">{'★'.repeat(review.rating)}</span>
-                        <span className="text-gray-300 dark:text-gray-600">
-                          {'★'.repeat(5 - review.rating)}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 dark:text-gray-400">{review.text}</p>
+          <AnimatePresence>
+            {isReviewFormOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full m-4"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Write a Review</h2>
+                    <button
+                      onClick={() => setIsReviewFormOpen(false)}
+                      className="text-gray-400 hover:text-gray-500"
+                    >
+                      ✕
+                    </button>
                   </div>
-                ))}
-              </div>
+                  <ReviewForm
+                    onSubmit={handleReviewSubmit}
+                    onCancel={() => setIsReviewFormOpen(false)}
+                  />
+                </motion.div>
+              </motion.div>
             )}
-          </div>
-        </div>
+          </AnimatePresence>
+        </main>
       </div>
     </PageTransition>
   );

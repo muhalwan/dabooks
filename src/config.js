@@ -6,6 +6,4 @@ const development = {
   API_URL: 'http://localhost:5000'
 };
 
-const config = process.env.NODE_ENV === 'production' ? production : development;
-
-export default config;
+export default process.env.NODE_ENV === 'production' ? production : development;

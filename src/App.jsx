@@ -1,19 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { DarkModeProvider } from './context/DarkModeContext';
+import { ROUTES } from './utils/constants';
+
+// Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import BookDetail from './pages/BookDetail';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { AnimatePresence } from 'framer-motion';
-import { DarkModeProvider } from './context/DarkModeContext';
-
-
-const PrivateRoute = ({ children }) => {
-  const { token } = useAuth();
-  return token ? children : <Navigate to="/login" />;
-};
-
+import PrivateRoute from './components/PrivateRoute';
+import Profile from "./pages/Profile.jsx";
 
 const App = () => {
   return (
@@ -22,25 +19,33 @@ const App = () => {
         <AuthProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/book/:id"
-              element={
-                <PrivateRoute>
-                  <BookDetail />
-                </PrivateRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" />} />
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.REGISTER} element={<Register />} />
+              <Route
+                path={ROUTES.HOME}
+                element={
+                  <PrivateRoute>
+                    <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path={ROUTES.BOOK_DETAIL}
+                element={
+                  <PrivateRoute>
+                    <BookDetail />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path={ROUTES.PROFILE}
+                element={
+                  <PrivateRoute>
+                    <Profile />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
             </Routes>
           </div>
         </AuthProvider>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const BookCard = ({ book, index }) => {
+const BookCard = ({ book }) => {
   const navigate = useNavigate();
 
   return (
@@ -32,10 +32,7 @@ const BookCard = ({ book, index }) => {
             </span>
           </div>
           <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            ({(book.average_rating || 0).toFixed(1)})
-          </span>
-          <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            {book.total_ratings || 0} {book.total_ratings === 1 ? 'review' : 'reviews'}
+            ({book.total_ratings || 0} {book.total_ratings === 1 ? 'review' : 'reviews'})
           </span>
         </div>
         <p className="text-gray-700 dark:text-gray-300 line-clamp-3 text-sm">
