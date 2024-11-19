@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.book import Book
 from app.models.review import Review
+from app.extensions import mongo
+from bson import ObjectId
 
 books_bp = Blueprint('books', __name__)
 
@@ -9,7 +11,48 @@ books_bp = Blueprint('books', __name__)
 @books_bp.route('', methods=['GET'])
 def get_books():
     try:
-        books = Book.get_all_with_ratings()
+        search_query = request.args.get('search', '').strip()
+
+        pipeline = []
+
+        # Add search if query provided
+        if search_query:
+            pipeline.append({
+                '$match': {
+                    '$or': [
+                        {'title': {'$regex': search_query, '$options': 'i'}},
+                        {'author': {'$regex': search_query, '$options': 'i'}},
+                        {'description': {'$regex': search_query, '$options': 'i'}}
+                    ]
+                }
+            })
+
+        # Add ratings aggregation
+        pipeline.extend([
+            {
+                '$lookup': {
+                    'from': 'reviews',
+                    'localField': '_id',
+                    'foreignField': 'book_id',
+                    'as': 'reviews'
+                }
+            },
+            {
+                '$addFields': {
+                    'average_rating': {
+                        '$cond': [
+                            {'$eq': [{'$size': '$reviews'}, 0]},
+                            0,
+                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
+                        ]
+                    },
+                    'total_ratings': {'$size': '$reviews'}
+                }
+            }
+        ])
+
+        books = list(mongo.db.books.aggregate(pipeline))
+
         return jsonify([{
             'id': str(book['_id']),
             'title': book['title'],
@@ -75,19 +118,42 @@ def book_reviews(book_id):
 @jwt_required()
 def get_book(book_id):
     try:
-        book = Book.get_by_id(book_id)
-        if not book:
+        pipeline = [
+            {'$match': {'_id': ObjectId(book_id)}},
+            {
+                '$lookup': {
+                    'from': 'reviews',
+                    'localField': '_id',
+                    'foreignField': 'book_id',
+                    'as': 'reviews'
+                }
+            },
+            {
+                '$addFields': {
+                    'average_rating': {
+                        '$cond': [
+                            {'$eq': [{'$size': '$reviews'}, 0]},
+                            0,
+                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
+                        ]
+                    },
+                    'total_ratings': {'$size': '$reviews'}
+                }
+            }
+        ]
+
+        books = list(mongo.db.books.aggregate(pipeline))
+        if not books:
             return jsonify({"message": "Book not found"}), 404
 
-        rating_stats = Book.get_rating_stats(book_id)
-
+        book = books[0]
         return jsonify({
             'id': str(book['_id']),
             'title': book['title'],
             'author': book['author'],
             'description': book.get('description', ''),
-            'average_rating': rating_stats['average_rating'],
-            'total_ratings': rating_stats['total_ratings']
+            'average_rating': book['average_rating'],
+            'total_ratings': book['total_ratings']
         }), 200
     except Exception as e:
         return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
