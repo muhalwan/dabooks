@@ -40,21 +40,32 @@ const ReviewForm = ({ bookId, onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <motion.form
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      onSubmit={handleSubmit}
+      className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg"
+    >
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Rating
+        </label>
         {renderStarInput()}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Review
         </label>
         <textarea
           required
           value={formData.text}
           onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm
+                   focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400
+                   dark:focus:border-indigo-400 bg-white dark:bg-gray-700
+                   text-gray-900 dark:text-white"
           rows="4"
           placeholder="Write your review here..."
         />
@@ -64,18 +75,22 @@ const ReviewForm = ({ bookId, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm
+                   font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700
+                   hover:bg-gray-50 dark:hover:bg-gray-600"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm
+                   font-medium text-white bg-indigo-600 hover:bg-indigo-700
+                   dark:bg-indigo-500 dark:hover:bg-indigo-600"
         >
           Submit Review
         </button>
       </div>
-    </form>
+    </motion.form>
   );
 };
 
