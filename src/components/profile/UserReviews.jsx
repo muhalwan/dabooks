@@ -36,7 +36,7 @@ const UserReviews = ({ reviews = [] }) => {
               </div>
               <p className="text-gray-700 dark:text-gray-300">{review.text}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {new Date(review.created_at).toLocaleDateString()}
+                {new Date(review.date_posted).toLocaleDateString()}
               </p>
             </motion.div>
           ))}
