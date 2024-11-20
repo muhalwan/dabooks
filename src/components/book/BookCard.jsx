@@ -4,25 +4,13 @@ import { motion } from 'framer-motion';
 
 const BookCard = ({ book }) => {
   const navigate = useNavigate();
-
-  // Debug log to check book data
-  console.log('Book data in card:', book);
-
-  const handleClick = () => {
-    // MongoDB returns _id, so we need to use that
-    const bookId = book._id || book.id;
-    if (bookId) {
-      navigate(`/book/${bookId}`);
-    } else {
-      console.error('No book ID available:', book);
-    }
-  };
+  const rating = Math.round(book.average_rating || 0);
 
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={handleClick}
+      onClick={() => navigate(`/book/${book._id}`)}
       className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 cursor-pointer
                  transition-all duration-200 hover:shadow-md"
     >
@@ -34,9 +22,9 @@ const BookCard = ({ book }) => {
       </p>
       <div className="flex items-center mb-4">
         <div className="flex text-yellow-400">
-          {'★'.repeat(Math.round(book.average_rating || 0))}
+          {'★'.repeat(rating)}
           <span className="text-gray-300 dark:text-gray-600">
-            {'★'.repeat(5 - Math.round(book.average_rating || 0))}
+            {'★'.repeat(5 - rating)}
           </span>
         </div>
         <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">

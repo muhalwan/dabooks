@@ -26,16 +26,9 @@ const Login = () => {
 
     try {
       const response = await api.auth.login(formData);
-      console.log('Login response:', response); // Debug log
-
-      if (response.data.access_token && response.data.username) {
-        login(response.data.access_token, response.data.username);
-        navigate(ROUTES.HOME);
-      } else {
-        throw new Error('Invalid response format');
-      }
+      login(response.data.access_token, response.data.username);
+      navigate(ROUTES.HOME);
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.message || 'Login failed');
     } finally {
       setIsLoading(false);

@@ -12,7 +12,6 @@ const ReviewForm = ({ onSubmit, onCancel }) => {
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
-      onCancel();
     } finally {
       setIsSubmitting(false);
     }
@@ -32,11 +31,9 @@ const ReviewForm = ({ onSubmit, onCancel }) => {
               onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
               className="focus:outline-none"
             >
-              <span
-                className={`text-2xl ${
-                  formData.rating >= star ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
-                }`}
-              >
+              <span className={`text-2xl ${
+                formData.rating >= star ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
+              }`}>
                 ★
               </span>
             </button>

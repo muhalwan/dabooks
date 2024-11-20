@@ -7,22 +7,17 @@ import PageTransition from '../components/shared/PageTransition';
 import { api } from '../utils/api';
 
 const Profile = () => {
-  const { token, username } = useAuth();
-  const [userData, setUserData] = useState(null);
-  const [userReviews, setUserReviews] = useState([]);
+  const { token } = useAuth();
+  const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const [profileData, reviewsData] = await Promise.all([
-          api.users.getProfile(token),
-          api.users.getReviews(token)
-        ]);
-        setUserData(profileData);
-        setUserReviews(reviewsData);
+        const response = await api.users.getProfile(token);
+        setProfileData(response.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -30,7 +25,9 @@ const Profile = () => {
       }
     };
 
-    fetchUserData();
+    if (token) {
+      fetchProfileData();
+    }
   }, [token]);
 
   if (loading) {
@@ -55,8 +52,8 @@ const Profile = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <p className="text-red-600 dark:text-red-400 text-center">{error}</p>
+            <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
+              <p className="text-red-700 dark:text-red-100">{error}</p>
             </div>
           </div>
         </div>
@@ -66,11 +63,11 @@ const Profile = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <ProfileInfo user={userData} />
-          <UserReviews reviews={userReviews} />
+          <ProfileInfo user={profileData} />
+          <UserReviews reviews={profileData?.reviews || []} />
         </div>
       </div>
     </PageTransition>

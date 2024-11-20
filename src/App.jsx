@@ -8,7 +8,7 @@ import { ROUTES } from './utils/constants';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import BookDetail from './pages/BookDetail';
+import BookDetail from './pages/BookDetail.jsx';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from "./pages/Profile.jsx";
 

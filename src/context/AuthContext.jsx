@@ -9,6 +9,26 @@ export const AuthProvider = ({ children }) => {
   const [username, setUsername] = useState(localStorage.getItem('username'));
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkToken = () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          const decodedToken = jwtDecode(storedToken);
+          if (decodedToken.exp * 1000 < Date.now()) {
+            logout();
+          }
+        } catch {
+          logout();
+        }
+      }
+    };
+
+    checkToken();
+    const interval = setInterval(checkToken, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const login = (newToken, newUsername) => {
     setToken(newToken);
     setUsername(newUsername);
@@ -24,21 +44,14 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
-  useEffect(() => {
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        if (decodedToken.exp * 1000 < Date.now()) {
-          logout();
-        }
-      } catch {
-        logout();
-      }
-    }
-  }, [token]);
-
   return (
-    <AuthContext.Provider value={{ token, username, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{
+      token,
+      username,
+      login,
+      logout,
+      isAuthenticated: !!token
+    }}>
       {children}
     </AuthContext.Provider>
   );

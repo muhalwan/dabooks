@@ -21,13 +21,8 @@ export const api = {
         headers: createHeaders(),
         body: JSON.stringify(credentials),
       });
-      const data = await handleResponse(response);
-      if (!data.data?.access_token) {
-        throw new Error('Invalid response format');
-      }
-      return data;
+      return handleResponse(response);
     },
-
     register: async (userData) => {
       const response = await fetch(`${config.API_URL}/auth/register`, {
         method: 'POST',
@@ -38,25 +33,20 @@ export const api = {
     }
   },
 
-books: {
-  getAll: async (token) => {
-    const response = await fetch(`${config.API_URL}/books`, {
-      headers: createHeaders(token)
-    });
-    const data = await handleResponse(response);
-    console.log('API response for books:', data); // Debug log
-    return data;
-  },
+  books: {
+    getAll: async (token) => {
+      const response = await fetch(`${config.API_URL}/books`, {
+        headers: createHeaders(token)
+      });
+      return handleResponse(response);
+    },
 
-  getById: async (id, token) => {
-    console.log('Fetching book with ID:', id); // Debug log
-    const response = await fetch(`${config.API_URL}/books/${id}`, {
-      headers: createHeaders(token)
-    });
-    const data = await handleResponse(response);
-    console.log('API response for single book:', data); // Debug log
-    return data;
-  },
+    getById: async (id, token) => {
+      const response = await fetch(`${config.API_URL}/books/${id}`, {
+        headers: createHeaders(token)
+      });
+      return handleResponse(response);
+    },
 
     getReviews: async (bookId, token) => {
       const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
@@ -78,13 +68,6 @@ books: {
   users: {
     getProfile: async (token) => {
       const response = await fetch(`${config.API_URL}/users/profile`, {
-        headers: createHeaders(token)
-      });
-      return handleResponse(response);
-    },
-
-    getReviews: async (token) => {
-      const response = await fetch(`${config.API_URL}/users/profile/reviews`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);

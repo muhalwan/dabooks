@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDarkMode } from '../../context/DarkModeContext';
 import { motion } from 'framer-motion';
@@ -53,8 +53,8 @@ const Navbar = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={logout}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300
-                        px-3 py-2 rounded-md"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
+                        dark:hover:text-gray-300 px-3 py-2 rounded-md"
             >
               Sign out
             </motion.button>
