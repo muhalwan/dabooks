@@ -1,22 +1,28 @@
-from datetime import datetime
-from app.extensions import mongo
 from werkzeug.security import generate_password_hash, check_password_hash
+from app.constants import USERS_COLLECTION
+from .base import BaseModel
 
-class User:
-    @staticmethod
-    def create(username, email, password):
-        user = {
-            "username": username,
-            "email": email,
-            "password": generate_password_hash(password, method='pbkdf2:sha256'),  # Specify the hash method
-            "created_at": datetime.utcnow()
-        }
-        return mongo.db.users.insert_one(user)
+class User(BaseModel):
+    collection = USERS_COLLECTION
 
-    @staticmethod
-    def find_by_username(username):
-        return mongo.db.users.find_one({"username": username})
+    @classmethod
+    def create(cls, username, email, password):
+        return super().create(
+            username=username,
+            email=email,
+            password=generate_password_hash(password, method='pbkdf2:sha256')
+        )
 
-    @staticmethod
-    def find_by_email(email):
-        return mongo.db.users.find_one({"email": email})
+    @classmethod
+    def find_by_username(cls, username):
+        return cls.find_one({"username": username})
+
+    @classmethod
+    def find_by_email(cls, email):
+        return cls.find_one({"email": email})
+
+    @classmethod
+    def check_password(cls, user, password):
+        if not user or not password:
+            return False
+        return check_password_hash(user['password'], password)

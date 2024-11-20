@@ -1,44 +1,56 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, current_app
 from flask_jwt_extended import create_access_token
-from werkzeug.security import check_password_hash
+from app.middleware.request_validators import validate_schema
+from app.schemas.auth import LoginSchema, RegisterSchema
 from app.models.user import User
+from app.utils.responses import success_response, error_response
+from app.constants import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 
 auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-
-    if User.find_by_username(data['username']):
-        return jsonify({"message": "Username already exists"}), 400
-
-    if User.find_by_email(data['email']):
-        return jsonify({"message": "Email already exists"}), 400
-
+@validate_schema(RegisterSchema)
+def register(validated_data):
     try:
-        User.create(data['username'], data['email'], data['password'])
-        return jsonify({"message": "User created successfully"}), 201
+        if User.find_by_username(validated_data['username']):
+            return error_response("Username already exists", HTTP_400_BAD_REQUEST)
+
+        if User.find_by_email(validated_data['email']):
+            return error_response("Email already exists", HTTP_400_BAD_REQUEST)
+
+        user_id = User.create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+
+        return success_response(
+            message="User registered successfully",
+            data={"user_id": str(user_id)},
+            code=HTTP_201_CREATED
+        )
     except Exception as e:
-        return jsonify({"message": f"Error creating user: {str(e)}"}), 500
+        current_app.logger.error(f"Registration error: {str(e)}")
+        return error_response(str(e), HTTP_400_BAD_REQUEST)
 
 
 @auth_bp.route('/login', methods=['POST'])
-def login():
+@validate_schema(LoginSchema)
+def login(validated_data):
     try:
-        data = request.get_json()
-        user = User.find_by_username(data['username'])
+        user = User.find_by_username(validated_data['username'])
 
-        if not user:
-            return jsonify({"message": "User not found"}), 401
+        if not user or not User.check_password(user, validated_data['password']):
+            return error_response("Invalid username or password", HTTP_401_UNAUTHORIZED)
 
-        if check_password_hash(user['password'], data['password']):
-            access_token = create_access_token(identity=str(user['_id']))
-            return jsonify({
-                "access_token": access_token,
-                "username": user['username']
-            }), 200
+        access_token = create_access_token(identity=str(user['_id']))
 
-        return jsonify({"message": "Invalid credentials"}), 401
+        return success_response(data={
+            "access_token": access_token,
+            "username": user['username'],
+            "user_id": str(user['_id'])
+        })
     except Exception as e:
-        return jsonify({"message": f"Error during login: {str(e)}"}), 500
+        current_app.logger.error(f"Login error: {str(e)}")
+        return error_response("Login failed", HTTP_400_BAD_REQUEST)

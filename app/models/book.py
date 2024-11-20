@@ -1,74 +1,89 @@
-from datetime import datetime
-from app.extensions import mongo
 from bson import ObjectId
+from app.constants import BOOKS_COLLECTION
+from .base import BaseModel
+from app.extensions import mongo
+from app.utils.helpers import convert_object_id
 
-class Book:
-    @staticmethod
-    def create(title, author, description=""):
-        book = {
-            "title": title,
-            "author": author,
-            "description": description,
-            "created_at": datetime.utcnow()
-        }
-        return mongo.db.books.insert_one(book)
 
-    @staticmethod
-    def get_all():
-        return list(mongo.db.books.find())
+class Book(BaseModel):
+    collection = BOOKS_COLLECTION
 
-    @staticmethod
-    def find_by_id(book_id):
-        return mongo.db.books.find_one({"_id": ObjectId(book_id)})
+    @classmethod
+    def create(cls, title, author, description=""):
+        return super().create(
+            title=title,
+            author=author,
+            description=description
+        )
 
-    @staticmethod
-    def get_by_id(book_id):
-        from bson import ObjectId
-        try:
-            return mongo.db.books.find_one({"_id": ObjectId(book_id)})
-        except Exception:
-            return None
-
-    @staticmethod
-    def get_rating_stats(book_id):
+    @classmethod
+    def get_rating_stats(cls, book_id):
         pipeline = [
             {"$match": {"book_id": ObjectId(book_id)}},
             {"$group": {
                 "_id": None,
                 "average_rating": {"$avg": "$rating"},
                 "total_ratings": {"$sum": 1}
+            }},
+            {"$project": {
+                "_id": 0,
+                "average_rating": {"$round": ["$average_rating", 1]},
+                "total_ratings": 1
             }}
         ]
-        stats = list(mongo.db.reviews.aggregate(pipeline))
-        if stats:
-            return {
-                "average_rating": round(stats[0]["average_rating"], 1),
-                "total_ratings": stats[0]["total_ratings"]
-            }
-        return {"average_rating": 0, "total_ratings": 0}
+        result = list(mongo.db.reviews.aggregate(pipeline))
+        return result[0] if result else {"average_rating": 0, "total_ratings": 0}
 
-    @staticmethod
-    def get_all_with_ratings():
-        pipeline = [
+    @classmethod
+    def get_all_with_ratings(cls, search_query=None, sort_by="title", sort_order="asc", page=1, per_page=10):
+        pipeline = []
+
+        if search_query:
+            pipeline.append({
+                '$match': {
+                    '$or': [
+                        {'title': {'$regex': search_query, '$options': 'i'}},
+                        {'author': {'$regex': search_query, '$options': 'i'}},
+                        {'description': {'$regex': search_query, '$options': 'i'}}
+                    ]
+                }
+            })
+
+        pipeline.extend([
             {
-                "$lookup": {
-                    "from": "reviews",
-                    "localField": "_id",
-                    "foreignField": "book_id",
-                    "as": "reviews"
+                '$lookup': {
+                    'from': 'reviews',
+                    'localField': '_id',
+                    'foreignField': 'book_id',
+                    'as': 'reviews'
                 }
             },
             {
-                "$addFields": {
-                    "average_rating": {
-                        "$cond": [
-                            { "$eq": [{ "$size": "$reviews" }, 0] },
+                '$addFields': {
+                    'average_rating': {
+                        '$cond': [
+                            {'$eq': [{'$size': '$reviews'}, 0]},
                             0,
-                            { "$round": [{ "$avg": "$reviews.rating" }, 1] }
+                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
                         ]
                     },
-                    "total_ratings": { "$size": "$reviews" }
+                    'total_ratings': {'$size': '$reviews'}
                 }
             }
-        ]
-        return list(mongo.db.books.aggregate(pipeline))
+        ])
+
+        sort_direction = 1 if sort_order == 'asc' else -1
+        sort_field = {
+            'rating': 'average_rating',
+            'popularity': 'total_ratings',
+            'title': 'title'
+        }.get(sort_by, 'title')
+
+        pipeline.append({'$sort': {sort_field: sort_direction}})
+        pipeline.extend([
+            {'$skip': (page - 1) * per_page},
+            {'$limit': per_page}
+        ])
+
+        results = list(cls._get_collection().aggregate(pipeline))
+        return convert_object_id(results)

@@ -1,9 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.middleware.request_validators import validate_schema
+from app.schemas.book import BookSchema, ReviewSchema
 from app.models.book import Book
 from app.models.review import Review
-from app.extensions import mongo
+from app.utils.responses import success_response, error_response
+from app.utils.helpers import parse_pagination_params, parse_sort_params, convert_object_id
 from bson import ObjectId
+from app.constants import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 books_bp = Blueprint('books', __name__)
 
@@ -11,160 +15,80 @@ books_bp = Blueprint('books', __name__)
 @books_bp.route('', methods=['GET'])
 def get_books():
     try:
-        search_query = request.args.get('search', '').strip()
-        sort_by = request.args.get('sort', 'title')  # default sort by title
-        sort_order = request.args.get('order', 'asc')  # default ascending
+        search = request.args.get('search', '').strip()
+        sort_by, sort_order = parse_sort_params(request.args)
+        page, per_page = parse_pagination_params(request.args)
 
-        pipeline = []
-
-        # Add search if query provided
-        if search_query:
-            pipeline.append({
-                '$match': {
-                    '$or': [
-                        {'title': {'$regex': search_query, '$options': 'i'}},
-                        {'author': {'$regex': search_query, '$options': 'i'}},
-                        {'description': {'$regex': search_query, '$options': 'i'}}
-                    ]
-                }
-            })
-
-        # Add ratings aggregation
-        pipeline.extend([
-            {
-                '$lookup': {
-                    'from': 'reviews',
-                    'localField': '_id',
-                    'foreignField': 'book_id',
-                    'as': 'reviews'
-                }
-            },
-            {
-                '$addFields': {
-                    'average_rating': {
-                        '$cond': [
-                            {'$eq': [{'$size': '$reviews'}, 0]},
-                            0,
-                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
-                        ]
-                    },
-                    'total_ratings': {'$size': '$reviews'}
-                }
-            }
-        ])
-
-        # Add sorting
-        sort_direction = 1 if sort_order == 'asc' else -1
-        if sort_by == 'rating':
-            pipeline.append({'$sort': {'average_rating': sort_direction}})
-        elif sort_by == 'popularity':
-            pipeline.append({'$sort': {'total_ratings': sort_direction}})
-        else:  # default sort by title
-            pipeline.append({'$sort': {'title': sort_direction}})
-
-        books = list(mongo.db.books.aggregate(pipeline))
-
-        return jsonify([{
-            'id': str(book['_id']),
-            'title': book['title'],
-            'author': book['author'],
-            'description': book.get('description', ''),
-            'average_rating': book['average_rating'],
-            'total_ratings': book['total_ratings']
-        } for book in books]), 200
-    except Exception as e:
-        return jsonify({"message": f"Error fetching books: {str(e)}"}), 500
-
-
-@books_bp.route('', methods=['POST'])
-@jwt_required()
-def add_book():
-    data = request.get_json()
-    try:
-        result = Book.create(
-            data['title'],
-            data['author'],
-            data.get('description', '')
+        books = Book.get_all_with_ratings(
+            search_query=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            page=page,
+            per_page=per_page
         )
-        return jsonify({"message": "Book added successfully", "id": str(result.inserted_id)}), 201
+
+        return success_response(data=convert_object_id(books))
     except Exception as e:
-        return jsonify({"message": f"Error adding book: {str(e)}"}), 500
-
-
-@books_bp.route('/<book_id>/reviews', methods=['POST', 'GET'])
-@jwt_required(optional=True)
-def book_reviews(book_id):
-    if request.method == 'POST':
-        current_user_id = get_jwt_identity()
-        if not current_user_id:
-            return jsonify({"message": "Authentication required"}), 401
-
-        data = request.get_json()
-        try:
-            Review.create(
-                data['text'],
-                data['rating'],
-                current_user_id,
-                book_id
-            )
-            return jsonify({"message": "Review added successfully"}), 201
-        except Exception as e:
-            return jsonify({"message": f"Error adding review: {str(e)}"}), 500
-
-    else:  # GET
-        try:
-            reviews = Review.get_book_reviews(book_id)
-            return jsonify([{
-                'id': str(review['_id']),
-                'text': review['text'],
-                'rating': review['rating'],
-                'date_posted': review['created_at'].isoformat(),
-                'user': review['user']['username']
-            } for review in reviews]), 200
-        except Exception as e:
-            return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
+        current_app.logger.error(f"Error fetching books: {str(e)}")
+        return error_response("Error fetching books", HTTP_400_BAD_REQUEST)
 
 
 @books_bp.route('/<book_id>', methods=['GET'])
 @jwt_required()
 def get_book(book_id):
     try:
-        pipeline = [
-            {'$match': {'_id': ObjectId(book_id)}},
-            {
-                '$lookup': {
-                    'from': 'reviews',
-                    'localField': '_id',
-                    'foreignField': 'book_id',
-                    'as': 'reviews'
-                }
-            },
-            {
-                '$addFields': {
-                    'average_rating': {
-                        '$cond': [
-                            {'$eq': [{'$size': '$reviews'}, 0]},
-                            0,
-                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
-                        ]
-                    },
-                    'total_ratings': {'$size': '$reviews'}
-                }
-            }
-        ]
+        book = Book.find_by_id(book_id)
+        if not book:
+            return error_response("Book not found", HTTP_404_NOT_FOUND)
 
-        books = list(mongo.db.books.aggregate(pipeline))
-        if not books:
-            return jsonify({"message": "Book not found"}), 404
-
-        book = books[0]
-        return jsonify({
-            'id': str(book['_id']),
-            'title': book['title'],
-            'author': book['author'],
-            'description': book.get('description', ''),
-            'average_rating': book['average_rating'],
-            'total_ratings': book['total_ratings']
-        }), 200
+        return success_response(data=convert_object_id(book))
     except Exception as e:
-        return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
+        current_app.logger.error(f"Error fetching book: {str(e)}")
+        return error_response("Error fetching book", HTTP_400_BAD_REQUEST)
+
+
+@books_bp.route('/<book_id>/reviews', methods=['GET'])
+def get_book_reviews(book_id):
+    try:
+        page, per_page = parse_pagination_params(request.args)
+        reviews = Review.get_book_reviews(book_id, page=page, per_page=per_page)
+        return success_response(data=convert_object_id(reviews))
+    except Exception as e:
+        current_app.logger.error(f"Error fetching reviews: {str(e)}")
+        return error_response("Error fetching reviews", HTTP_400_BAD_REQUEST)
+
+
+@books_bp.route('/<book_id>/reviews', methods=['POST'])
+@jwt_required()
+@validate_schema(ReviewSchema)
+def add_review(book_id, validated_data):
+    try:
+        user_id = get_jwt_identity()
+
+        # Check if book exists
+        book = Book.find_by_id(book_id)
+        if not book:
+            return error_response("Book not found", HTTP_404_NOT_FOUND)
+
+        # Check if user already reviewed this book
+        existing_review = Review.find_one({
+            "user_id": ObjectId(user_id),
+            "book_id": ObjectId(book_id)
+        })
+        if existing_review:
+            return error_response("You have already reviewed this book", HTTP_400_BAD_REQUEST)
+
+        review_id = Review.create(
+            user_id=user_id,
+            book_id=book_id,
+            **validated_data
+        )
+
+        return success_response(
+            message="Review added successfully",
+            data={"review_id": str(review_id)},
+            code=HTTP_201_CREATED
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error adding review: {str(e)}")
+        return error_response("Error adding review", HTTP_400_BAD_REQUEST)
