@@ -50,9 +50,9 @@ const UserSearchBar = () => {
   }, [query, token]);
 
   return (
-    <div className="relative w-64" ref={wrapperRef}>
-      <div className="relative">
-        <input
+    <div className="relative w-full sm:w-64" ref={wrapperRef}>
+        <div className="relative">
+            <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

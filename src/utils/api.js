@@ -46,21 +46,18 @@ export const api = {
       });
       return handleResponse(response);
     },
-
     getById: async (id, token) => {
       const response = await fetch(`${config.API_URL}/books/${id}`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);
     },
-
     getReviews: async (bookId, token) => {
       const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);
     },
-
     addReview: async (bookId, reviewData, token) => {
       const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
         method: 'POST',
@@ -72,12 +69,6 @@ export const api = {
   },
 
   users: {
-    getProfile: async (token) => {
-      const response = await fetch(`${config.API_URL}/users/profile`, {
-        headers: createHeaders(token)
-      });
-      return handleResponse(response);
-    },
     search: async (query, token) => {
       const response = await fetch(`${config.API_URL}/users/search?q=${encodeURIComponent(query)}`, {
         headers: createHeaders(token)
@@ -86,6 +77,12 @@ export const api = {
     },
     getPublicProfile: async (userId, token) => {
       const response = await fetch(`${config.API_URL}/users/${userId}`, {
+        headers: createHeaders(token)
+      });
+      return handleResponse(response);
+    },
+    getProfile: async (token) => {
+      const response = await fetch(`${config.API_URL}/users/profile`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);

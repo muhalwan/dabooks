@@ -1,11 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/shared/Navbar';
-import SearchBar from '../components/shared/SearchBar';
-import SortButtons from '../components/shared/SortButtons.jsx';
 import BookCard from '../components/book/BookCard';
 import PageTransition from '../components/shared/PageTransition';
+import { motion } from 'framer-motion';
 import { api } from '../utils/api';
+
+const SortButton = ({ label, active, order, onClick }) => (
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={onClick}
+    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+                ${active 
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+  >
+    {label}
+    {active && <span className="ml-1">{order === 'asc' ? '↑' : '↓'}</span>}
+  </motion.button>
+);
 
 const Dashboard = () => {
   const [books, setBooks] = useState([]);
@@ -31,19 +46,15 @@ const Dashboard = () => {
     }
   }, [token, sortBy, sortOrder]);
 
-  // Handle sort change
   const handleSortChange = (newSort) => {
     if (newSort === sortBy) {
-      // Toggle order if clicking same sort
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      // New sort, default to ascending
       setSortBy(newSort);
       setSortOrder('asc');
     }
   };
 
-  // Debounce search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchBooks(searchQuery);
@@ -74,26 +85,53 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col space-y-4 mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:space-y-0">
-              <h1 className="text-3xl font-light text-gray-900 dark:text-white">
-                Your reading <span className="font-medium">collection</span>
-              </h1>
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                isSearching={isSearching}
-              />
-            </div>
-            <div className="flex justify-end">
-              <SortButtons
-                activeSort={sortBy}
-                activeOrder={sortOrder}
-                onSortChange={handleSortChange}
-              />
+          <div className="flex items-center justify-between mb-8">
+            {/* Title */}
+            <h1 className="text-3xl font-light text-gray-900 dark:text-white">
+              Your reading <span className="font-medium">collection</span>
+            </h1>
+
+            {/* Search and Sort */}
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="w-64">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search books..."
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300
+                           dark:border-gray-600 bg-white dark:bg-gray-700
+                           text-gray-900 dark:text-white focus:outline-none
+                           focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Sort Buttons */}
+              <div className="flex gap-2">
+                <SortButton
+                  label="Title"
+                  active={sortBy === 'title'}
+                  order={sortOrder}
+                  onClick={() => handleSortChange('title')}
+                />
+                <SortButton
+                  label="Rating"
+                  active={sortBy === 'rating'}
+                  order={sortOrder}
+                  onClick={() => handleSortChange('rating')}
+                />
+                <SortButton
+                  label="Popularity"
+                  active={sortBy === 'popularity'}
+                  order={sortOrder}
+                  onClick={() => handleSortChange('popularity')}
+                />
+              </div>
             </div>
           </div>
 
+          {/* Books Grid */}
           {error ? (
             <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
               <p className="text-red-700 dark:text-red-100">{error}</p>
