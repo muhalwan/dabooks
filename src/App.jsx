@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import BookDetail from './pages/BookDetail.jsx';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from "./pages/Profile.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
 
 const App = () => {
   return (
@@ -46,6 +47,14 @@ const App = () => {
                 }
               />
               <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route
+                  path="/user/:id"
+                  element={
+                    <PrivateRoute>
+                      <UserProfile />
+                    </PrivateRoute>
+                  }
+              />
             </Routes>
           </div>
         </AuthProvider>

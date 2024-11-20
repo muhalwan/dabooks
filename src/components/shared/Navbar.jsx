@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDarkMode } from '../../context/DarkModeContext';
 import { motion } from 'framer-motion';
+import UserSearchBar from '../user/UserSearchBar';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Navbar = () => {
           </motion.div>
 
           <div className="flex items-center space-x-4">
+            <UserSearchBar />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

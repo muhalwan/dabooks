@@ -77,6 +77,18 @@ export const api = {
         headers: createHeaders(token)
       });
       return handleResponse(response);
+    },
+    search: async (query, token) => {
+      const response = await fetch(`${config.API_URL}/users/search?q=${encodeURIComponent(query)}`, {
+        headers: createHeaders(token)
+      });
+      return handleResponse(response);
+    },
+    getPublicProfile: async (userId, token) => {
+      const response = await fetch(`${config.API_URL}/users/${userId}`, {
+        headers: createHeaders(token)
+      });
+      return handleResponse(response);
     }
   }
 };

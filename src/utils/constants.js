@@ -3,5 +3,6 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   BOOK_DETAIL: '/book/:id',
+  USER_PROFILE: '/user/:id',
   PROFILE: '/profile'
 };
