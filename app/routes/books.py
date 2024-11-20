@@ -27,7 +27,7 @@ def get_books():
             per_page=per_page
         )
 
-        return success_response(data=convert_object_id(books))
+        return success_response(data=books)
     except Exception as e:
         current_app.logger.error(f"Error fetching books: {str(e)}")
         return error_response("Error fetching books", HTTP_400_BAD_REQUEST)
