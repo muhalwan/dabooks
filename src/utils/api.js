@@ -34,8 +34,14 @@ export const api = {
   },
 
   books: {
-    getAll: async (token) => {
-      const response = await fetch(`${config.API_URL}/books`, {
+    getAll: async (token, searchQuery = '', sortBy = 'title', sortOrder = 'asc') => {
+      const params = new URLSearchParams({
+        ...(searchQuery && { search: searchQuery }),
+        sort: sortBy,
+        order: sortOrder
+      });
+
+      const response = await fetch(`${config.API_URL}/books?${params}`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);
