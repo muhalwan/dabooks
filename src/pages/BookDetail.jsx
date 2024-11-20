@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/shared/Navbar';
@@ -11,6 +11,7 @@ import { api } from '../utils/api';
 
 const BookDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [book, setBook] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -18,32 +19,44 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [bookData, reviewsData] = await Promise.all([
-        api.books.getById(id, token),
-        api.books.getReviews(id, token)
-      ]);
-      setBook(bookData);
-      setReviews(reviewsData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, token]);
-
   useEffect(() => {
+    const fetchData = async () => {
+      if (!id) {
+        navigate('/');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const [bookData, reviewsData] = await Promise.all([
+          api.books.getById(id, token),
+          api.books.getReviews(id, token)
+        ]);
+
+        console.log('Book data:', bookData); // Debug log
+        console.log('Reviews data:', reviewsData); // Debug log
+
+        setBook(bookData.data);
+        setReviews(reviewsData.data);
+      } catch (err) {
+        console.error('Error fetching book data:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
-  }, [fetchData]);
+  }, [id, token, navigate]);
 
   const handleReviewSubmit = async (reviewData) => {
     try {
       await api.books.addReview(id, reviewData, token);
+      const newReviews = await api.books.getReviews(id, token);
+      setReviews(newReviews.data);
       setIsReviewFormOpen(false);
-      await fetchData();
     } catch (err) {
+      console.error('Error submitting review:', err);
       setError('Failed to submit review');
     }
   };
@@ -71,8 +84,8 @@ const BookDetail = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <p className="text-red-600 dark:text-red-400 text-center">{error}</p>
+            <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
+              <p className="text-red-700 dark:text-red-100">{error}</p>
             </div>
           </div>
         </div>
@@ -86,8 +99,8 @@ const BookDetail = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <p className="text-gray-500 dark:text-gray-400 text-center">Book not found</p>
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              Book not found
             </div>
           </div>
         </div>
@@ -97,9 +110,9 @@ const BookDetail = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <BookInfo book={book} onReviewClick={() => setIsReviewFormOpen(true)} />
           <ReviewList reviews={reviews} />
 
@@ -109,24 +122,17 @@ const BookDetail = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
               >
                 <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
+                  initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full m-4"
-                  onClick={e => e.stopPropagation()}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4"
                 >
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Write a Review</h2>
-                    <button
-                      onClick={() => setIsReviewFormOpen(false)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      ✕
-                    </button>
-                  </div>
+                  <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                    Write a Review
+                  </h2>
                   <ReviewForm
                     onSubmit={handleReviewSubmit}
                     onCancel={() => setIsReviewFormOpen(false)}
@@ -135,7 +141,7 @@ const BookDetail = () => {
               </motion.div>
             )}
           </AnimatePresence>
-        </main>
+        </div>
       </div>
     </PageTransition>
   );

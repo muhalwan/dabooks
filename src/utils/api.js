@@ -6,11 +6,11 @@ const createHeaders = (token) => ({
 });
 
 const handleResponse = async (response) => {
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'API request failed');
+    throw new Error(data.message || 'API request failed');
   }
-  return response.json();
+  return data;
 };
 
 export const api = {
@@ -21,7 +21,11 @@ export const api = {
         headers: createHeaders(),
         body: JSON.stringify(credentials),
       });
-      return handleResponse(response);
+      const data = await handleResponse(response);
+      if (!data.data?.access_token) {
+        throw new Error('Invalid response format');
+      }
+      return data;
     },
 
     register: async (userData) => {
@@ -34,30 +38,29 @@ export const api = {
     }
   },
 
-  books: {
-    getAll: async (token, searchQuery = '', sortBy = 'title', sortOrder = 'asc') => {
-      const query = new URLSearchParams({
-        search: searchQuery,
-        sort: sortBy,
-        order: sortOrder
-      }).toString();
+books: {
+  getAll: async (token) => {
+    const response = await fetch(`${config.API_URL}/books`, {
+      headers: createHeaders(token)
+    });
+    const data = await handleResponse(response);
+    console.log('API response for books:', data); // Debug log
+    return data;
+  },
 
-      const response = await fetch(`${config.API_URL}/books?${query}`, {
-        headers: createHeaders(token),
-      });
-      return handleResponse(response);
-    },
-
-    getById: async (id, token) => {
-      const response = await fetch(`${config.API_URL}/books/${id}`, {
-        headers: createHeaders(token),
-      });
-      return handleResponse(response);
-    },
+  getById: async (id, token) => {
+    console.log('Fetching book with ID:', id); // Debug log
+    const response = await fetch(`${config.API_URL}/books/${id}`, {
+      headers: createHeaders(token)
+    });
+    const data = await handleResponse(response);
+    console.log('API response for single book:', data); // Debug log
+    return data;
+  },
 
     getReviews: async (bookId, token) => {
       const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
-        headers: createHeaders(token),
+        headers: createHeaders(token)
       });
       return handleResponse(response);
     },
@@ -75,16 +78,16 @@ export const api = {
   users: {
     getProfile: async (token) => {
       const response = await fetch(`${config.API_URL}/users/profile`, {
-        headers: createHeaders(token),
+        headers: createHeaders(token)
       });
       return handleResponse(response);
     },
 
     getReviews: async (token) => {
-      const response = await fetch(`${config.API_URL}/users/reviews`, {
-        headers: createHeaders(token),
+      const response = await fetch(`${config.API_URL}/users/profile/reviews`, {
+        headers: createHeaders(token)
       });
       return handleResponse(response);
-    },
-  },
+    }
+  }
 };

@@ -2,21 +2,22 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-const UserReviews = ({ reviews }) => (
+const UserReviews = ({ reviews = [] }) => (
   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Your Reviews</h2>
+    <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Your Reviews</h2>
+
     {reviews.length === 0 ? (
       <p className="text-gray-500 dark:text-gray-400 text-center italic">
         You haven't written any reviews yet.
       </p>
     ) : (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {reviews.map((review) => (
           <motion.div
-            key={review.id}
+            key={review.book_id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="border-b last:border-b-0 pb-4 dark:border-gray-700"
+            className="border-b last:border-b-0 pb-6 last:pb-0 dark:border-gray-700"
           >
             <Link
               to={`/book/${review.book_id}`}

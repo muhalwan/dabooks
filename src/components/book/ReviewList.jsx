@@ -1,48 +1,40 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-
-const ReviewItem = ({ review }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="border-b pb-4 last:border-b-0 dark:border-gray-700"
-  >
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-gray-600 dark:text-gray-400">{review.user}</span>
-      <div className="flex text-yellow-400">
-        {'★'.repeat(review.rating)}
-        <span className="text-gray-300 dark:text-gray-600">
-          {'★'.repeat(5 - review.rating)}
-        </span>
-      </div>
-    </div>
-    <p className="text-gray-700 dark:text-gray-300">{review.text}</p>
-  </motion.div>
-);
-
 const ReviewList = ({ reviews }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
-  >
-    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Reviews</h2>
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+    <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Reviews</h2>
+
     {reviews.length === 0 ? (
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-gray-500 dark:text-gray-400 text-center italic"
-      >
+      <p className="text-gray-500 dark:text-gray-400 text-center italic">
         No reviews yet. Be the first to share your thoughts!
-      </motion.p>
+      </p>
     ) : (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {reviews.map((review) => (
-          <ReviewItem key={review.id} review={review} />
+          <motion.div
+            key={review.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="border-b last:border-b-0 pb-4 last:pb-0 dark:border-gray-700"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-medium text-gray-900 dark:text-white">
+                {review.user}
+              </span>
+              <div className="flex text-yellow-400">
+                {'★'.repeat(review.rating)}
+                <span className="text-gray-300 dark:text-gray-600">
+                  {'★'.repeat(5 - review.rating)}
+                </span>
+              </div>
+            </div>
+            <p className="text-gray-700 dark:text-gray-300">{review.text}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              {new Date(review.date_posted).toLocaleDateString()}
+            </p>
+          </motion.div>
         ))}
       </div>
     )}
-  </motion.div>
+  </div>
 );
 
 export default ReviewList;

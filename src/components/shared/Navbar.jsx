@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDarkMode } from '../../context/DarkModeContext';
 import { motion } from 'framer-motion';
@@ -10,28 +10,37 @@ const Navbar = () => {
   const { isDark, toggleDarkMode } = useDarkMode();
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow transition-colors duration-200">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <motion.span
-              whileHover={{ scale: 1.05 }}
-              onClick={() => navigate('/')}
-              className="text-2xl cursor-pointer font-light tracking-tight text-gray-900 dark:text-white"
-            >
+          <motion.div
+            className="flex items-center cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            onClick={() => navigate('/')}
+          >
+            <span className="text-2xl font-light text-gray-900 dark:text-white">
               da<span className="font-medium">books</span>
-            </motion.span>
-          </div>
+            </span>
+          </motion.div>
+
           <div className="flex items-center space-x-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-              aria-label="Toggle dark mode"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700"
             >
-              {isDark ? <SunIcon /> : <MoonIcon />}
+              {isDark ? (
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
             </motion.button>
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate('/profile')}
@@ -39,12 +48,13 @@ const Navbar = () => {
             >
               {username}
             </motion.button>
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={logout}
-              className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700
-                       dark:hover:text-gray-300 transition-colors duration-200 px-3 py-2 rounded-md"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300
+                        px-3 py-2 rounded-md"
             >
               Sign out
             </motion.button>
