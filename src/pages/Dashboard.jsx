@@ -85,71 +85,69 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             {/* Title */}
             <h1 className="text-3xl font-light text-gray-900 dark:text-white">
               Your reading <span className="font-medium">collection</span>
             </h1>
 
             {/* Search and Sort */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
               {/* Search */}
-              <div className="w-64">
+              <div className="w-full md:w-64">
                 <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search books..."
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300
-                           dark:border-gray-600 bg-white dark:bg-gray-700
-                           text-gray-900 dark:text-white focus:outline-none
-                           focus:ring-2 focus:ring-indigo-500"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search books..."
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               {/* Sort Buttons */}
               <div className="flex gap-2">
                 <SortButton
-                  label="Title"
-                  active={sortBy === 'title'}
-                  order={sortOrder}
-                  onClick={() => handleSortChange('title')}
+                    label="Title"
+                    active={sortBy === 'title'}
+                    order={sortOrder}
+                    onClick={() => handleSortChange('title')}
                 />
                 <SortButton
-                  label="Rating"
-                  active={sortBy === 'rating'}
-                  order={sortOrder}
-                  onClick={() => handleSortChange('rating')}
+                    label="Rating"
+                    active={sortBy === 'rating'}
+                    order={sortOrder}
+                    onClick={() => handleSortChange('rating')}
                 />
                 <SortButton
-                  label="Popularity"
-                  active={sortBy === 'popularity'}
-                  order={sortOrder}
-                  onClick={() => handleSortChange('popularity')}
+                    label="Popularity"
+                    active={sortBy === 'popularity'}
+                    order={sortOrder}
+                    onClick={() => handleSortChange('popularity')}
                 />
               </div>
             </div>
           </div>
 
+
           {/* Books Grid */}
           {error ? (
-            <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
-              <p className="text-red-700 dark:text-red-100">{error}</p>
-            </div>
+              <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
+                <p className="text-red-700 dark:text-red-100">{error}</p>
+              </div>
           ) : books.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">
-                {searchQuery
-                  ? 'No books found matching your search'
-                  : 'No books available'}
-              </p>
-            </div>
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">
+                  {searchQuery
+                      ? 'No books found matching your search'
+                      : 'No books available'}
+                </p>
+              </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {books.map((book) => (
-                <BookCard key={book._id} book={book} />
-              ))}
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {books.map((book) => (
+                    <BookCard key={book._id} book={book}/>
+                ))}
+              </div>
           )}
         </div>
       </div>
