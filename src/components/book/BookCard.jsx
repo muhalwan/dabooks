@@ -7,44 +7,43 @@ const BookCard = ({ book }) => {
   const rating = Math.round(book.average_rating || 0);
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      onClick={() => navigate(`/book/${book._id}`)}
-      className="bg-gray-800/50 rounded-2xl p-6 h-[240px] 
-                 cursor-pointer hover:bg-gray-800/80
+      <motion.div
+          whileHover={{ y: -4 }}
+          onClick={() => navigate(`/book/${book._id}`)}
+          className="group bg-white dark:bg-gray-800 rounded-2xl p-6 h-[240px]
+                 cursor-pointer border border-gray-200 dark:border-gray-700
+                 hover:bg-gray-50 dark:hover:bg-gray-700/50
                  transition-all duration-200"
-    >
-      {/* Main content container with flex to ensure consistent spacing */}
-      <div className="flex flex-col h-full">
-        {/* Title and Author section */}
-        <div className="mb-4">
-          <h3 className="text-xl font-normal text-white mb-2">
-            {book.title}
-          </h3>
-          <p className="text-gray-400 text-sm italic">
-            {book.author}
-          </p>
-        </div>
+      >
+        <div className="flex flex-col h-full">
+          <div className="mb-4">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white
+                       group-hover:text-indigo-600 dark:group-hover:text-indigo-400
+                       transition-colors duration-200">
+              {book.title}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm italic">
+              {book.author}
+            </p>
+          </div>
 
-        {/* Reviews section */}
-        <div className="flex items-center mb-4">
-          <div className="flex text-yellow-400">
-            {'★'.repeat(rating)}
-            <span className="text-gray-600">
+          <div className="flex items-center mb-4">
+            <div className="flex text-yellow-400">
+              {'★'.repeat(rating)}
+              <span className="text-gray-300 dark:text-gray-600">
               {'★'.repeat(5 - rating)}
             </span>
-          </div>
-          <span className="ml-2 text-sm text-gray-400">
+            </div>
+            <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
             ({book.total_ratings || 0} reviews)
           </span>
-        </div>
+          </div>
 
-        {/* Description with line clamp to ensure consistent height */}
-        <p className="text-gray-400 text-sm line-clamp-3">
-          {book.description}
-        </p>
-      </div>
-    </motion.div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+            {book.description}
+          </p>
+        </div>
+      </motion.div>
   );
 };
 

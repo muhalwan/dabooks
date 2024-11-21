@@ -34,11 +34,13 @@ export const api = {
   },
 
   books: {
-    getAll: async (token, searchQuery = '', sortBy = 'title', sortOrder = 'asc') => {
+    getAll: async (token, searchQuery = '', sortBy = 'title', sortOrder = 'asc', page = 1, perPage = 30) => {
       const params = new URLSearchParams({
         ...(searchQuery && { search: searchQuery }),
         sort: sortBy,
-        order: sortOrder
+        order: sortOrder,
+        page: page,
+        per_page: perPage
       });
 
       const response = await fetch(`${config.API_URL}/books?${params}`, {
