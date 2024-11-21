@@ -1,94 +1,194 @@
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.middleware.request_validators import validate_schema
-from app.schemas.book import BookSchema, ReviewSchema
 from app.models.book import Book
 from app.models.review import Review
-from app.utils.responses import success_response, error_response
-from app.utils.helpers import parse_pagination_params, parse_sort_params, convert_object_id
+from app.extensions import mongo
 from bson import ObjectId
-from app.constants import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from datetime import datetime
+
+def convert_object_id(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, dict):
+        return {key: convert_object_id(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [convert_object_id(item) for item in obj]
+    return obj
 
 books_bp = Blueprint('books', __name__)
-
 
 @books_bp.route('', methods=['GET'])
 def get_books():
     try:
-        search = request.args.get('search', '').strip()
-        sort_by, sort_order = parse_sort_params(request.args)
-        page, per_page = parse_pagination_params(request.args)
+        search_query = request.args.get('search', '').strip()
+        sort_by = request.args.get('sort', 'title')
+        sort_order = request.args.get('order', 'asc')
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 30))
 
-        books = Book.get_all_with_ratings(
-            search_query=search,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            page=page,
-            per_page=per_page
-        )
+        pipeline = []
 
-        return success_response(data=books)
+        if search_query:
+            pipeline.append({
+                '$match': {
+                    '$or': [
+                        {'title': {'$regex': search_query, '$options': 'i'}},
+                        {'author': {'$regex': search_query, '$options': 'i'}},
+                        {'description': {'$regex': search_query, '$options': 'i'}}
+                    ]
+                }
+            })
+
+        pipeline.extend([
+            {
+                '$lookup': {
+                    'from': 'reviews',
+                    'localField': '_id',
+                    'foreignField': 'book_id',
+                    'as': 'reviews'
+                }
+            },
+            {
+                '$addFields': {
+                    'average_rating': {
+                        '$cond': [
+                            {'$eq': [{'$size': '$reviews'}, 0]},
+                            0,
+                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
+                        ]
+                    },
+                    'total_ratings': {'$size': '$reviews'}
+                }
+            }
+        ])
+
+        sort_direction = 1 if sort_order == 'asc' else -1
+        if sort_by == 'rating':
+            pipeline.append({'$sort': {'average_rating': sort_direction}})
+        elif sort_by == 'popularity':
+            pipeline.append({'$sort': {'total_ratings': sort_direction}})
+        else:
+            pipeline.append({'$sort': {'title': sort_direction}})
+
+        # Get total count before pagination
+        count_pipeline = pipeline.copy()
+        count_pipeline.append({'$count': 'total'})
+        total_result = list(mongo.db.books.aggregate(count_pipeline))
+        total = total_result[0]['total'] if total_result else 0
+
+        # Add pagination
+        pipeline.extend([
+            {'$skip': (page - 1) * per_page},
+            {'$limit': per_page}
+        ])
+
+        books = list(mongo.db.books.aggregate(pipeline))
+        books = convert_object_id(books)  # Convert all ObjectIds to strings
+
+        return jsonify({
+            "data": books,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total": total,
+                "pages": (total + per_page - 1) // per_page
+            }
+        }), 200
     except Exception as e:
         current_app.logger.error(f"Error fetching books: {str(e)}")
-        return error_response("Error fetching books", HTTP_400_BAD_REQUEST)
+        return jsonify({"message": f"Error fetching books: {str(e)}"}), 500
 
+@books_bp.route('', methods=['POST'])
+@jwt_required()
+def add_book():
+    try:
+        data = request.get_json()
+        result = Book.create(
+            data['title'],
+            data['author'],
+            data.get('description', '')
+        )
+        return jsonify({"message": "Book added successfully", "id": str(result.inserted_id)}), 201
+    except Exception as e:
+        current_app.logger.error(f"Error adding book: {str(e)}")
+        return jsonify({"message": f"Error adding book: {str(e)}"}), 500
+
+@books_bp.route('/<book_id>/reviews', methods=['POST', 'GET'])
+@jwt_required(optional=True)
+def book_reviews(book_id):
+    if request.method == 'POST':
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return jsonify({"message": "Authentication required"}), 401
+
+        try:
+            data = request.get_json()
+            Review.create(
+                data['text'],
+                data['rating'],
+                current_user_id,
+                book_id
+            )
+            return jsonify({"message": "Review added successfully"}), 201
+        except Exception as e:
+            current_app.logger.error(f"Error adding review: {str(e)}")
+            return jsonify({"message": f"Error adding review: {str(e)}"}), 500
+
+    else:  # GET
+        try:
+            reviews = Review.get_book_reviews(book_id)
+            reviews = convert_object_id(reviews)  # Convert all ObjectIds to strings
+            return jsonify({"data": reviews}), 200
+        except Exception as e:
+            current_app.logger.error(f"Error fetching reviews: {str(e)}")
+            return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
 
 @books_bp.route('/<book_id>', methods=['GET'])
 @jwt_required()
 def get_book(book_id):
     try:
-        book = Book.find_by_id(book_id)
-        if not book:
-            return error_response("Book not found", HTTP_404_NOT_FOUND)
+        pipeline = [
+            {'$match': {'_id': ObjectId(book_id)}},
+            {
+                '$lookup': {
+                    'from': 'reviews',
+                    'localField': '_id',
+                    'foreignField': 'book_id',
+                    'as': 'reviews'
+                }
+            },
+            {
+                '$addFields': {
+                    'average_rating': {
+                        '$cond': [
+                            {'$eq': [{'$size': '$reviews'}, 0]},
+                            0,
+                            {'$round': [{'$avg': '$reviews.rating'}, 1]}
+                        ]
+                    },
+                    'total_ratings': {'$size': '$reviews'}
+                }
+            }
+        ]
 
-        return success_response(data=convert_object_id(book))
+        books = list(mongo.db.books.aggregate(pipeline))
+        if not books:
+            return jsonify({"message": "Book not found"}), 404
+
+        book = convert_object_id(books[0])  # Convert all ObjectIds to strings
+
+        return jsonify({
+            "data": {
+                'id': book['_id'],
+                'title': book['title'],
+                'author': book['author'],
+                'description': book.get('description', ''),
+                'average_rating': book['average_rating'],
+                'total_ratings': book['total_ratings']
+            }
+        }), 200
     except Exception as e:
         current_app.logger.error(f"Error fetching book: {str(e)}")
-        return error_response("Error fetching book", HTTP_400_BAD_REQUEST)
-
-
-@books_bp.route('/<book_id>/reviews', methods=['GET'])
-def get_book_reviews(book_id):
-    try:
-        page, per_page = parse_pagination_params(request.args)
-        reviews = Review.get_book_reviews(book_id, page=page, per_page=per_page)
-        return success_response(data=convert_object_id(reviews))
-    except Exception as e:
-        current_app.logger.error(f"Error fetching reviews: {str(e)}")
-        return error_response("Error fetching reviews", HTTP_400_BAD_REQUEST)
-
-
-@books_bp.route('/<book_id>/reviews', methods=['POST'])
-@jwt_required()
-@validate_schema(ReviewSchema)
-def add_review(book_id, validated_data):
-    try:
-        user_id = get_jwt_identity()
-
-        # Check if book exists
-        book = Book.find_by_id(book_id)
-        if not book:
-            return error_response("Book not found", HTTP_404_NOT_FOUND)
-
-        # Check if user already reviewed this book
-        existing_review = Review.find_one({
-            "user_id": ObjectId(user_id),
-            "book_id": ObjectId(book_id)
-        })
-        if existing_review:
-            return error_response("You have already reviewed this book", HTTP_400_BAD_REQUEST)
-
-        review_id = Review.create(
-            user_id=user_id,
-            book_id=book_id,
-            **validated_data
-        )
-
-        return success_response(
-            message="Review added successfully",
-            data={"review_id": str(review_id)},
-            code=HTTP_201_CREATED
-        )
-    except Exception as e:
-        current_app.logger.error(f"Error adding review: {str(e)}")
-        return error_response("Error adding review", HTTP_400_BAD_REQUEST)
+        return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
