@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthForm from '../components/auth/AuthForm';
 import { api } from '../utils/api';
@@ -10,7 +10,11 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // Get the redirect path from location state or default to home
+  const from = location.state?.from || ROUTES.HOME;
 
   const handleInputChange = (e) => {
     setFormData(prev => ({
@@ -27,7 +31,7 @@ const Login = () => {
     try {
       const response = await api.auth.login(formData);
       login(response.data.access_token, response.data.username);
-      navigate(ROUTES.HOME);
+      navigate(from); // Redirect to the original destination
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
@@ -36,14 +40,14 @@ const Login = () => {
   };
 
   return (
-    <AuthForm
-      type="login"
-      formData={formData}
-      onInputChange={handleInputChange}
-      onSubmit={handleSubmit}
-      error={error}
-      isLoading={isLoading}
-    />
+      <AuthForm
+          type="login"
+          formData={formData}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          error={error}
+          isLoading={isLoading}
+      />
   );
 };
 

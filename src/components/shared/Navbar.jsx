@@ -7,7 +7,7 @@ import UserSearchBar from '../user/UserSearchBar';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { username, logout } = useAuth();
+  const { username, logout, token } = useAuth();
   const { isDark, toggleDarkMode } = useDarkMode();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -28,9 +28,11 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <div className="md:mr-4">
-                <UserSearchBar />
-              </div>
+              {token && (
+                  <div className="md:mr-4">
+                    <UserSearchBar />
+                  </div>
+              )}
               <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -47,22 +49,47 @@ const Navbar = () => {
                     </svg>
                 )}
               </motion.button>
-              <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => navigate('/profile')}
-                  className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                {username}
-              </motion.button>
-              <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={logout}
-                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
-                       dark:hover:text-gray-300 px-3 py-2 rounded-md"
-              >
-                Sign out
-              </motion.button>
+              {token ? (
+                  <>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => navigate('/profile')}
+                        className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    >
+                      {username}
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={logout}
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
+                           dark:hover:text-gray-300 px-3 py-2 rounded-md"
+                    >
+                      Sign out
+                    </motion.button>
+                  </>
+              ) : (
+                  <>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/login')}
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
+                           dark:hover:text-gray-300 px-3 py-2 rounded-md"
+                    >
+                      Sign in
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/register')}
+                        className="text-sm text-white bg-indigo-600 hover:bg-indigo-700
+                           px-3 py-2 rounded-md"
+                    >
+                      Register
+                    </motion.button>
+                  </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -105,31 +132,60 @@ const Navbar = () => {
                   className="md:hidden pb-4"
               >
                 <div className="pt-2 pb-3 space-y-1">
-                  <div className="mb-4">
-                    <UserSearchBar />
-                  </div>
-                  <motion.button
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        navigate('/profile');
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-base text-gray-600
-                         dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Profile ({username})
-                  </motion.button>
-                  <motion.button
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        logout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-base text-gray-500
-                         dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    Sign out
-                  </motion.button>
+                  {token ? (
+                      <>
+                        <div className="mb-4">
+                          <UserSearchBar />
+                        </div>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              navigate('/profile');
+                              setIsMenuOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-base text-gray-600
+                             dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Profile ({username})
+                        </motion.button>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              logout();
+                              setIsMenuOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-base text-gray-500
+                             dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Sign out
+                        </motion.button>
+                      </>
+                  ) : (
+                      <>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              navigate('/login');
+                              setIsMenuOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-base text-gray-500
+                             dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Sign in
+                        </motion.button>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              navigate('/register');
+                              setIsMenuOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-base text-white bg-indigo-600
+                             hover:bg-indigo-700"
+                        >
+                          Register
+                        </motion.button>
+                      </>
+                  )}
                 </div>
               </motion.div>
           )}
