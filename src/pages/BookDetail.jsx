@@ -147,3 +147,5 @@ const BookDetail = () => {
       </PageTransition>
   );
 };
+
+export default BookDetail;
