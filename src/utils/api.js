@@ -34,33 +34,30 @@ export const api = {
   },
 
   books: {
-    getAll: async (token, searchQuery = '', sortBy = 'title', sortOrder = 'asc', page = 1, perPage = 30) => {
-      const params = new URLSearchParams({
-        ...(searchQuery && { search: searchQuery }),
+    getAll: async (token = null, searchQuery = '', sortBy = 'title', sortOrder = 'asc') => {
+      const query = new URLSearchParams({
+        search: searchQuery,
         sort: sortBy,
-        order: sortOrder,
-        page: page,
-        per_page: perPage
-      });
+        order: sortOrder
+      }).toString();
 
-      const response = await fetch(`${config.API_URL}/books?${params}`, {
-        headers: createHeaders(token)
-      });
+      const response = await fetch(`${config.API_URL}/books?${query}`);
       return handleResponse(response);
     },
-    getById: async (id, token) => {
-      const response = await fetch(`${config.API_URL}/books/${id}`, {
-        headers: createHeaders(token)
-      });
+
+    getById: async (id, token = null) => {
+      const response = await fetch(`${config.API_URL}/books/${id}`);
       return handleResponse(response);
     },
-    getReviews: async (bookId, token) => {
-      const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
-        headers: createHeaders(token)
-      });
+
+    getReviews: async (bookId, token = null) => {
+      const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`);
       return handleResponse(response);
     },
+
     addReview: async (bookId, reviewData, token) => {
+      if (!token) throw new Error('Authentication required');
+
       const response = await fetch(`${config.API_URL}/books/${bookId}/reviews`, {
         method: 'POST',
         headers: createHeaders(token),
@@ -72,18 +69,24 @@ export const api = {
 
   users: {
     search: async (query, token) => {
+      if (!token) throw new Error('Authentication required');
+
       const response = await fetch(`${config.API_URL}/users/search?q=${encodeURIComponent(query)}`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);
     },
     getPublicProfile: async (userId, token) => {
+      if (!token) throw new Error('Authentication required');
+
       const response = await fetch(`${config.API_URL}/users/${userId}`, {
         headers: createHeaders(token)
       });
       return handleResponse(response);
     },
     getProfile: async (token) => {
+      if (!token) throw new Error('Authentication required');
+
       const response = await fetch(`${config.API_URL}/users/profile`, {
         headers: createHeaders(token)
       });
