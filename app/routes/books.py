@@ -5,6 +5,7 @@ from app.models.review import Review
 from app.extensions import mongo
 from bson import ObjectId
 from datetime import datetime
+from functools import wraps
 
 def convert_object_id(obj):
     if isinstance(obj, ObjectId):
@@ -72,20 +73,18 @@ def get_books():
         else:
             pipeline.append({'$sort': {'title': sort_direction}})
 
-        # Get total count before pagination
         count_pipeline = pipeline.copy()
         count_pipeline.append({'$count': 'total'})
         total_result = list(mongo.db.books.aggregate(count_pipeline))
         total = total_result[0]['total'] if total_result else 0
 
-        # Add pagination
         pipeline.extend([
             {'$skip': (page - 1) * per_page},
             {'$limit': per_page}
         ])
 
         books = list(mongo.db.books.aggregate(pipeline))
-        books = convert_object_id(books)  # Convert all ObjectIds to strings
+        books = convert_object_id(books)
 
         return jsonify({
             "data": books,
@@ -100,53 +99,7 @@ def get_books():
         current_app.logger.error(f"Error fetching books: {str(e)}")
         return jsonify({"message": f"Error fetching books: {str(e)}"}), 500
 
-@books_bp.route('', methods=['POST'])
-@jwt_required()
-def add_book():
-    try:
-        data = request.get_json()
-        result = Book.create(
-            data['title'],
-            data['author'],
-            data.get('description', '')
-        )
-        return jsonify({"message": "Book added successfully", "id": str(result.inserted_id)}), 201
-    except Exception as e:
-        current_app.logger.error(f"Error adding book: {str(e)}")
-        return jsonify({"message": f"Error adding book: {str(e)}"}), 500
-
-@books_bp.route('/<book_id>/reviews', methods=['POST', 'GET'])
-@jwt_required(optional=True)
-def book_reviews(book_id):
-    if request.method == 'POST':
-        current_user_id = get_jwt_identity()
-        if not current_user_id:
-            return jsonify({"message": "Authentication required"}), 401
-
-        try:
-            data = request.get_json()
-            Review.create(
-                data['text'],
-                data['rating'],
-                current_user_id,
-                book_id
-            )
-            return jsonify({"message": "Review added successfully"}), 201
-        except Exception as e:
-            current_app.logger.error(f"Error adding review: {str(e)}")
-            return jsonify({"message": f"Error adding review: {str(e)}"}), 500
-
-    else:  # GET
-        try:
-            reviews = Review.get_book_reviews(book_id)
-            reviews = convert_object_id(reviews)  # Convert all ObjectIds to strings
-            return jsonify({"data": reviews}), 200
-        except Exception as e:
-            current_app.logger.error(f"Error fetching reviews: {str(e)}")
-            return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
-
 @books_bp.route('/<book_id>', methods=['GET'])
-@jwt_required()
 def get_book(book_id):
     try:
         pipeline = [
@@ -177,7 +130,7 @@ def get_book(book_id):
         if not books:
             return jsonify({"message": "Book not found"}), 404
 
-        book = convert_object_id(books[0])  # Convert all ObjectIds to strings
+        book = convert_object_id(books[0])
 
         return jsonify({
             "data": {
@@ -192,3 +145,45 @@ def get_book(book_id):
     except Exception as e:
         current_app.logger.error(f"Error fetching book: {str(e)}")
         return jsonify({"message": f"Error fetching book: {str(e)}"}), 500
+
+@books_bp.route('/<book_id>/reviews', methods=['GET'])
+def get_book_reviews(book_id):
+    try:
+        reviews = Review.get_book_reviews(book_id)
+        reviews = convert_object_id(reviews)
+        return jsonify({"data": reviews}), 200
+    except Exception as e:
+        current_app.logger.error(f"Error fetching reviews: {str(e)}")
+        return jsonify({"message": f"Error fetching reviews: {str(e)}"}), 500
+
+@books_bp.route('/<book_id>/reviews', methods=['POST'])
+@jwt_required()
+def add_review(book_id):
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        Review.create(
+            data['text'],
+            data['rating'],
+            current_user_id,
+            book_id
+        )
+        return jsonify({"message": "Review added successfully"}), 201
+    except Exception as e:
+        current_app.logger.error(f"Error adding review: {str(e)}")
+        return jsonify({"message": f"Error adding review: {str(e)}"}), 500
+
+@books_bp.route('', methods=['POST'])
+@jwt_required()
+def add_book():
+    try:
+        data = request.get_json()
+        result = Book.create(
+            data['title'],
+            data['author'],
+            data.get('description', '')
+        )
+        return jsonify({"message": "Book added successfully", "id": str(result.inserted_id)}), 201
+    except Exception as e:
+        current_app.logger.error(f"Error adding book: {str(e)}")
+        return jsonify({"message": f"Error adding book: {str(e)}"}), 500
