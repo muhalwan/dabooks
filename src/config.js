@@ -1,6 +1,6 @@
 const config = {
   production: {
-    API_URL: 'https://dabooks-api-c1dc5695b41d.herokuapp.com'
+    API_URL: 'https://active-konstance-muhalwan-1333f850.koyeb.app'
   },
   development: {
     API_URL: 'http://localhost:5000'
