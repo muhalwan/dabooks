@@ -63,6 +63,7 @@ const Dashboard = () => {
   }, [searchQuery, fetchBooks]);
 
   const handleSortChange = (newSort) => {
+    setPage(1);
     if (newSort === sortBy) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -106,7 +107,7 @@ const Dashboard = () => {
                   <input
                       type="text"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => { setPage(1); setSearchQuery(e.target.value); }}
                       placeholder="Search books..."
                       className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800
                            border border-gray-200 dark:border-gray-700

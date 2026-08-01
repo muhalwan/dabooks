@@ -34,14 +34,16 @@ export const api = {
   },
 
   books: {
-    getAll: async (token = null, searchQuery = '', sortBy = 'title', sortOrder = 'asc') => {
-      const query = new URLSearchParams({
-        search: searchQuery,
+    getAll: async (token = null, searchQuery = '', sortBy = 'title', sortOrder = 'asc', page = 1, perPage = 30) => {
+      const params = new URLSearchParams({
         sort: sortBy,
-        order: sortOrder
-      }).toString();
+        order: sortOrder,
+        page: String(page),
+        per_page: String(perPage)
+      });
+      if (searchQuery) params.set('search', searchQuery);
 
-      const response = await fetch(`${config.API_URL}/books?${query}`);
+      const response = await fetch(`${config.API_URL}/books?${params.toString()}`);
       return handleResponse(response);
     },
 
