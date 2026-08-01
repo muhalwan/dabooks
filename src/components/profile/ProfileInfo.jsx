@@ -1,50 +1,31 @@
-import React from 'react';
+const initial = (name) => (name?.[0] || '?').toUpperCase();
 
 const ProfileInfo = ({ user }) => {
   if (!user) return null;
+  const reviews = user.reviews || [];
+  const avg = reviews.length
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="bg-indigo-100 dark:bg-indigo-900 rounded-full p-4">
-          <span className="text-2xl text-indigo-600 dark:text-indigo-400">
-            {user.username?.[0]?.toUpperCase()}
-          </span>
+    <section className="pb-8 mb-10 border-b border-line">
+      <div className="flex items-center gap-5 mb-8">
+        <div className="w-14 h-14 flex items-center justify-center border border-line bg-surface">
+          <span className="font-serif text-2xl text-accent">{initial(user.username)}</span>
         </div>
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            {user.username}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {user.email}
-          </p>
+          <h1 className="font-serif text-3xl text-ink tracking-tightish leading-tight">{user.username}</h1>
+          <p className="text-sm text-muted">{user.email}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Reading Stats
-          </h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Reviews Written</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {user.reviews?.length || 0}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Average Rating Given</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {user.reviews?.length
-                  ? (user.reviews.reduce((acc, r) => acc + r.rating, 0) / user.reviews.length).toFixed(1)
-                  : 'N/A'} ★
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm max-w-md">
+        <dt className="text-muted">Reviews written</dt>
+        <dd className="text-ink text-right">{reviews.length}</dd>
+        <dt className="text-muted">Average rating given</dt>
+        <dd className="text-ink text-right">{avg ? `${avg} ★` : '—'}</dd>
+      </dl>
+    </section>
   );
 };
 

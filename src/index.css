@@ -2,19 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ponytail: editorial / literary minimal palette. One accent (oxblood),
+   antique-gold stars, warm paper background. All token-driven so dark mode
+   is a variable swap, not a per-component re-style. */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --color-paper:   #FAF8F3;
+  --color-ink:     #1C1917;
+  --color-surface: #FFFFFF;
+  --color-line:    #E7E2D6;
+  --color-muted:   #6F6960;
+  --color-accent:  #8B2E2E;
+  --color-star:    #9B7A2E;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: rgb(249 250 251);
+.dark {
+  --color-paper:   #161311;
+  --color-ink:     #EDE6D6;
+  --color-surface: #211C18;
+  --color-line:    #332C26;
+  --color-muted:   #9C9388;
+  --color-accent:  #D17A7A;
+  --color-star:    #C9A45C;
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body { margin: 0; min-height: 100vh; }
+  #root { width: 100%; min-height: 100vh; }
+
+  /* Editorial: serif for all headings via the .font-serif utility and h1-h3 */
+  h1, h2, h3, h4 {
+    font-family: 'Newsreader', Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* Native, dependency-free styling for the rating inputs */
+  input, textarea, button, select { font: inherit; color: inherit; }
+  textarea { line-height: 1.6; }
+
+  /* Calmer, editorial selection */
+  ::selection { background: var(--color-accent); color: var(--color-paper); }
+}
+
+@layer components {
+  /* Hairline rule used between list items */
+  .rule { border-color: var(--color-line); }
 }

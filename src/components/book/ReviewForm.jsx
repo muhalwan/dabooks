@@ -1,84 +1,58 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+
+const Star = ({ on, onClick }) => (
+  <button type="button" onClick={onClick} className="p-0.5 text-2xl leading-none transition-colors">
+    <span className={on ? 'text-star' : 'text-line'}>★</span>
+  </button>
+);
 
 const ReviewForm = ({ onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-    text: '',
-    rating: 5
-  });
+  const [text, setText] = useState('');
+  const [rating, setRating] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
-
+    if (isSubmitting || !text.trim()) return;
     setIsSubmitting(true);
-    try {
-      await onSubmit(formData);
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { await onSubmit({ text: text.trim(), rating }); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Rating
-        </label>
-        <div className="flex items-center space-x-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
-              className="focus:outline-none"
-            >
-              <span
-                className={`text-2xl ${
-  formData.rating >= star ? 'text-yellow-400' : 'text-gray-600'
-}`}
-              >
-                ★
-              </span>
-            </button>
+        <label className="block text-[11px] uppercase tracking-[0.16em] text-muted mb-2">Your rating</label>
+        <div className="flex items-center">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Star key={n} on={rating >= n} onClick={() => setRating(n)} />
           ))}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Review
-        </label>
+        <label className="block text-[11px] uppercase tracking-[0.16em] text-muted mb-2">Your review</label>
         <textarea
-          value={formData.text}
-          onChange={(e) => setFormData(prev => ({ ...prev, text: e.target.value }))}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           required
-          rows="4"
-          className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                   text-white placeholder-gray-400 focus:outline-none
-                   focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          placeholder="Write your review here..."
+          rows="5"
+          autoFocus
+          placeholder="What did you think?"
+          className="w-full bg-transparent border border-line focus:border-accent p-3 text-ink placeholder-muted outline-none transition-colors resize-none font-serif text-[1.02rem] leading-[1.7]"
         />
       </div>
 
-      <div className="flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg
-                   hover:bg-gray-600 transition-colors duration-200"
-        >
+      <div className="flex justify-end gap-4 pt-2">
+        <button type="button" onClick={onCancel} className="text-sm text-muted hover:text-ink transition-colors">
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg
-                   hover:bg-indigo-700 transition-colors duration-200
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-sm text-accent hover:text-ink border-b border-accent pb-0.5 disabled:opacity-40 transition-colors"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Review'}
+          {isSubmitting ? 'Submitting…' : 'Publish review →'}
         </button>
       </div>
     </form>

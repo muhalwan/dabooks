@@ -1,45 +1,33 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import Stars from '../shared/Stars';
 
-const ReviewList = ({ reviews }) => {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Reviews</h2>
-
-      {(!reviews || reviews.length === 0) ? (
-        <p className="text-gray-500 dark:text-gray-400 text-center italic">
-          No reviews yet. Be the first to share your thoughts!
-        </p>
-      ) : (
-        <div className="space-y-6">
-          {reviews.map((review) => (
-            <motion.div
-              key={review._id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="border-b last:border-b-0 pb-4 last:pb-0 dark:border-gray-700"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {review.user?.username || 'Anonymous'}
-                </span>
-                <div className="flex text-yellow-400">
-                  {'★'.repeat(review.rating)}
-                  <span className="text-gray-300 dark:text-gray-600">
-                    {'★'.repeat(5 - review.rating)}
-                  </span>
-                </div>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300">{review.text}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {new Date(review.created_at).toLocaleDateString()}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+const fmt = (iso) => {
+  try { return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch { return ''; }
 };
+
+const ReviewList = ({ reviews }) => (
+  <section>
+    <h2 className="font-serif text-2xl text-ink mb-6">Reviews</h2>
+
+    {(!reviews || reviews.length === 0) ? (
+      <p className="text-muted italic">— No reviews yet. Be the first to write one.</p>
+    ) : (
+      <ul className="divide-y divide-line">
+        {reviews.map((r) => (
+          <li key={r._id} className="py-6 first:pt-0 last:pb-0">
+            <header className="flex items-baseline justify-between gap-4 mb-2">
+              <span className="font-medium text-ink">{r.user?.username || 'Anonymous'}</span>
+              <div className="flex items-center gap-3">
+                <Stars value={r.rating} />
+                <span className="text-xs text-muted">{fmt(r.created_at || r.date_posted)}</span>
+              </div>
+            </header>
+            <p className="font-serif text-[1.02rem] leading-[1.7] text-ink/90 max-w-prose">{r.text}</p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+);
 
 export default ReviewList;

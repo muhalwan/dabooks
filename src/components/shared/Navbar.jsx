@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDarkMode } from '../../context/DarkModeContext';
-import { motion } from 'framer-motion';
 import UserSearchBar from '../user/UserSearchBar';
+
+const IconSun = () => (
+  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="4" />
+    <path strokeLinecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+  </svg>
+);
+const IconMoon = () => (
+  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+);
+const IconMenu = ({ open }) => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+    {open
+      ? <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+      : <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />}
+  </svg>
+);
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -11,186 +29,74 @@ const Navbar = () => {
   const { isDark, toggleDarkMode } = useDarkMode();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const linkCls = 'text-sm text-ink/80 hover:text-accent transition-colors';
+
   return (
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            {/* Logo */}
-            <motion.div
-                className="flex items-center cursor-pointer"
-                whileHover={{ scale: 1.05 }}
-                onClick={() => navigate('/')}
-            >
-            <span className="text-2xl font-light text-gray-900 dark:text-white">
-              da<span className="font-medium">books</span>
-            </span>
-            </motion.div>
+    <header className="border-b border-line">
+      <nav className="max-w-6xl mx-auto px-5 sm:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Wordmark */}
+          <button
+            onClick={() => navigate('/')}
+            className="font-serif text-2xl tracking-tightish text-ink"
+            style={{ fontWeight: 400 }}
+          >
+            da<span style={{ fontWeight: 600 }}>books</span>
+          </button>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              {token && (
-                  <div className="md:mr-4">
-                    <UserSearchBar />
-                  </div>
-              )}
-              <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={toggleDarkMode}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700"
-              >
-                {isDark ? (
-                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                ) : (
-                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                )}
-              </motion.button>
-              {token ? (
-                  <>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        onClick={() => navigate('/profile')}
-                        className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                    >
-                      {username}
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={logout}
-                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
-                           dark:hover:text-gray-300 px-3 py-2 rounded-md"
-                    >
-                      Sign out
-                    </motion.button>
-                  </>
-              ) : (
-                  <>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/login')}
-                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700
-                           dark:hover:text-gray-300 px-3 py-2 rounded-md"
-                    >
-                      Sign in
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/register')}
-                        className="text-sm text-white bg-indigo-600 hover:bg-indigo-700
-                           px-3 py-2 rounded-md"
-                    >
-                      Register
-                    </motion.button>
-                  </>
-              )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center">
-              <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={toggleDarkMode}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 mr-2"
-              >
-                {isDark ? (
-                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                ) : (
-                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                )}
-              </motion.button>
-              <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {isMenuOpen ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
-            </div>
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-6">
+            {token && (
+              <div className="w-56">
+                <UserSearchBar />
+              </div>
+            )}
+            <button onClick={toggleDarkMode} className="text-muted hover:text-ink p-1.5 transition-colors" aria-label="Toggle theme">
+              {isDark ? <IconSun /> : <IconMoon />}
+            </button>
+            {token ? (
+              <>
+                <button onClick={() => navigate('/profile')} className={linkCls}>{username}</button>
+                <button onClick={logout} className={linkCls}>Sign out</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className={linkCls}>Sign in</button>
+                <button onClick={() => navigate('/register')} className="text-sm text-accent hover:text-ink transition-colors">Subscribe →</button>
+              </>
+            )}
           </div>
 
-          {/* Mobile menu */}
-          {isMenuOpen && (
-              <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="md:hidden pb-4"
-              >
-                <div className="pt-2 pb-3 space-y-1">
-                  {token ? (
-                      <>
-                        <div className="mb-4">
-                          <UserSearchBar />
-                        </div>
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/profile');
-                              setIsMenuOpen(false);
-                            }}
-                            className="block w-full text-left px-4 py-2 text-base text-gray-600
-                             dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Profile ({username})
-                        </motion.button>
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              logout();
-                              setIsMenuOpen(false);
-                            }}
-                            className="block w-full text-left px-4 py-2 text-base text-gray-500
-                             dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Sign out
-                        </motion.button>
-                      </>
-                  ) : (
-                      <>
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/login');
-                              setIsMenuOpen(false);
-                            }}
-                            className="block w-full text-left px-4 py-2 text-base text-gray-500
-                             dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Sign in
-                        </motion.button>
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/register');
-                              setIsMenuOpen(false);
-                            }}
-                            className="block w-full text-left px-4 py-2 text-base text-white bg-indigo-600
-                             hover:bg-indigo-700"
-                        >
-                          Register
-                        </motion.button>
-                      </>
-                  )}
-                </div>
-              </motion.div>
-          )}
+          {/* Mobile */}
+          <div className="md:hidden flex items-center gap-1">
+            <button onClick={toggleDarkMode} className="text-muted p-1.5" aria-label="Toggle theme">
+              {isDark ? <IconSun /> : <IconMoon />}
+            </button>
+            <button onClick={() => setIsMenuOpen(o => !o)} className="text-ink p-1.5" aria-label="Menu">
+              <IconMenu open={isMenuOpen} />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile sheet */}
+        {isMenuOpen && (
+          <div className="md:hidden pb-6 space-y-3">
+            {token && <div className="pb-2"><UserSearchBar /></div>}
+            {token ? (
+              <>
+                <button onClick={() => { navigate('/profile'); setIsMenuOpen(false); }} className="block text-ink">{username}</button>
+                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="block text-muted">Sign out</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => { navigate('/login'); setIsMenuOpen(false); }} className="block text-ink">Sign in</button>
+                <button onClick={() => { navigate('/register'); setIsMenuOpen(false); }} className="block text-accent">Subscribe →</button>
+              </>
+            )}
+          </div>
+        )}
       </nav>
+    </header>
   );
 };
 

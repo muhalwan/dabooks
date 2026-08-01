@@ -1,96 +1,76 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 const AuthForm = ({ type, formData, onInputChange, onSubmit, error, isLoading }) => {
   const isLogin = type === 'login';
-  const fields = isLogin ? [
-    { name: 'username', type: 'text', label: 'Username' },
-    { name: 'password', type: 'password', label: 'Password' }
-  ] : [
-    { name: 'username', type: 'text', label: 'Username' },
-    { name: 'email', type: 'email', label: 'Email' },
-    { name: 'password', type: 'password', label: 'Password' }
-  ];
+  const fields = isLogin
+    ? [{ name: 'username', type: 'text', label: 'Username' },
+       { name: 'password', type: 'password', label: 'Password' }]
+    : [{ name: 'username', type: 'text', label: 'Username' },
+       { name: 'email',    type: 'email',    label: 'Email' },
+       { name: 'password', type: 'password', label: 'Password' }];
 
   return (
-    <div className="min-h-screen flex flex-col justify-center bg-gray-50 dark:bg-gray-900 py-12 sm:px-6 lg:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sm:mx-auto sm:w-full sm:max-w-md"
-      >
-        <h2 className="text-center text-3xl font-light text-gray-900 dark:text-white">
-          {isLogin ? 'Welcome to ' : 'Create your '}<span className="font-medium">dabooks</span>
-        </h2>
-      </motion.div>
+    <div className="min-h-screen bg-paper flex flex-col">
+      {/* ponytail: masthead-style header strip, matches the editorial voice */}
+      <header className="border-b border-line">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center">
+          <Link to="/" className="font-serif text-2xl tracking-tightish text-ink" style={{ fontWeight: 400 }}>
+            da<span style={{ fontWeight: 600 }}>books</span>
+          </Link>
+          <span className="ml-4 text-[11px] uppercase tracking-[0.18em] text-muted">
+            {isLogin ? 'Sign in' : 'Subscribe'}
+          </span>
+        </div>
+      </header>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
-      >
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={onSubmit}>
+      <main className="flex-1 flex items-center justify-center px-5 py-12">
+        <div className="w-full max-w-sm">
+          <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tightish leading-tight mb-2">
+            {isLogin ? <>Welcome <em className="text-accent">back.</em></>
+                     : <>Begin your <em className="text-accent">shelf.</em></>}
+          </h1>
+          <p className="text-sm text-muted mb-10">
+            {isLogin ? 'A quiet room for what you read.' : 'A reading collection, quietly kept.'}
+          </p>
+
+          <form onSubmit={onSubmit} className="space-y-6">
             {error && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
-                <div className="text-sm text-red-700 dark:text-red-200">{error}</div>
-              </div>
+              <p className="text-sm text-accent border-l-2 border-accent pl-3">— {error}</p>
             )}
 
             {fields.map(({ name, type, label }) => (
               <div key={name}>
-                <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor={name} className="block text-[11px] uppercase tracking-[0.16em] text-muted mb-2">
                   {label}
                 </label>
-                <div className="mt-1">
-                  <input
-                    id={name}
-                    name={name}
-                    type={type}
-                    required
-                    value={formData[name]}
-                    onChange={onInputChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300
-                             dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400
-                             dark:placeholder-gray-500 bg-white dark:bg-gray-700
-                             text-gray-900 dark:text-white transition-colors duration-200
-                             focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
+                <input
+                  id={name}
+                  name={name}
+                  type={type}
+                  required
+                  value={formData[name]}
+                  onChange={onInputChange}
+                  className="w-full bg-transparent border-0 border-b border-line focus:border-accent pb-2 px-0 text-ink placeholder-muted outline-none transition-colors"
+                />
               </div>
             ))}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md
-                       shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700
-                       dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2
-                       focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900
-                       transition-colors duration-200 disabled:opacity-50"
+              className="w-full mt-4 text-sm text-paper bg-ink hover:bg-accent py-3 transition-colors disabled:opacity-50"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                isLogin ? 'Sign in' : 'Register'
-              )}
+              {isLoading ? '…' : isLogin ? 'Sign in →' : 'Create account →'}
             </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative flex justify-center text-sm">
-              <Link
-                to={isLogin ? '/register' : '/login'}
-                className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500
-                         dark:hover:text-indigo-300 transition-colors duration-200"
-              >
-                {isLogin ? "Don't have an account? Register" : 'Already have an account? Sign in'}
-              </Link>
-            </div>
-          </div>
+          <p className="mt-10 text-sm text-muted">
+            {isLogin
+              ? <>No account? <Link to="/register" className="text-accent hover:text-ink border-b border-accent pb-0.5">Subscribe</Link></>
+              : <>Already a reader? <Link to="/login" className="text-accent hover:text-ink border-b border-accent pb-0.5">Sign in</Link></>}
+          </p>
         </div>
-      </motion.div>
+      </main>
     </div>
   );
 };

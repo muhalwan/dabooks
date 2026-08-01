@@ -1,49 +1,32 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import Stars from '../shared/Stars';
 
-const UserReviews = ({ reviews = [] }) => {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">
-        Your Reviews
-      </h2>
-
-      {reviews.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-center italic">
-          You haven't written any reviews yet.
-        </p>
-      ) : (
-        <div className="space-y-6">
-          {reviews.map((review) => (
-            <motion.div
-              key={review._id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="border-b last:border-b-0 pb-6 last:pb-0 dark:border-gray-700"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    {review.book_title}
-                  </h3>
-                </div>
-                <div className="flex text-yellow-400">
-                  {'★'.repeat(review.rating)}
-                  <span className="text-gray-300 dark:text-gray-600">
-                    {'★'.repeat(5 - review.rating)}
-                  </span>
-                </div>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300">{review.text}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {new Date(review.date_posted).toLocaleDateString()}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+const fmt = (iso) => {
+  try { return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch { return ''; }
 };
+
+const UserReviews = ({ reviews = [] }) => (
+  <section>
+    <h2 className="font-serif text-2xl text-ink mb-6">Your reviews</h2>
+    {reviews.length === 0 ? (
+      <p className="text-muted italic">— You haven't written any reviews yet.</p>
+    ) : (
+      <ul className="divide-y divide-line">
+        {reviews.map((r) => (
+          <li key={r._id} className="py-6 first:pt-0 last:pb-0">
+            <header className="flex items-baseline justify-between gap-4 mb-2">
+              <h3 className="font-serif text-lg text-ink">{r.book_title}</h3>
+              <div className="flex items-center gap-3">
+                <Stars value={r.rating} />
+                <span className="text-xs text-muted">{fmt(r.date_posted)}</span>
+              </div>
+            </header>
+            <p className="font-serif text-[1.02rem] leading-[1.7] text-ink/90 max-w-prose">{r.text}</p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+);
 
 export default UserReviews;
